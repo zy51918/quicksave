@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 540" width="360" height="540">
+  <defs>
+    <style>text { font-family: system-ui, -apple-system, Roboto, sans-serif; }</style>
+  </defs>
+
+  <!-- Screen background (Surface) -->
+  <rect width="360" height="540" fill="#FFFBFE" rx="12"/>
+  <rect width="360" height="540" fill="none" stroke="#E0E0E0" stroke-width="1" rx="12"/>
+
+  <!-- TopAppBar (Primary color, h=56) -->
+  <rect x="0" y="0" width="360" height="56" fill="#6650A4" rx="12"/>
+  <rect x="0" y="12" width="360" height="44" fill="#6650A4"/>
+  <!-- Status bar time (white on primary) -->
+  <text x="12" y="17" font-size="11" fill="rgba(255,255,255,0.8)">9:41</text>
+  <!-- Back arrow -->
+  <text x="16" y="40" font-size="20" fill="#FFFFFF">←</text>
+  <!-- AppBar title: 设置 -->
+  <text x="56" y="40" font-size="20" font-weight="500" fill="#FFFFFF">设置</text>
+
+  <!-- Section title: 保存目标文件 (titleMedium 16sp/500, Primary) -->
+  <text x="16" y="92" font-size="16" font-weight="500" fill="#6650A4">保存目标文件</text>
+  <!-- Divider -->
+  <line x1="16" y1="104" x2="344" y2="104" stroke="#CAC4D0" stroke-width="1"/>
+
+  <!-- ── 已配置状态 ─────────────────────────────── -->
+  <text x="16" y="126" font-size="10" fill="#79747E">【已配置状态】</text>
+
+  <!-- File path Card -->
+  <rect x="16" y="132" width="328" height="72" rx="12" fill="#F7F2FA" stroke="#CAC4D0" stroke-width="1"/>
+  <text x="28" y="156" font-size="12" fill="#49454F">当前文件：</text>
+  <text x="28" y="176" font-size="13" fill="#1C1B1F">/storage/emulated/0/Documents/quicksave.txt</text>
+
+  <!-- 重新选择文件 OutlinedButton (full width) -->
+  <rect x="16" y="212" width="328" height="40" rx="20" fill="none" stroke="#6650A4" stroke-width="1.5"/>
+  <text x="180" y="237" font-size="14" font-weight="500" fill="#6650A4" text-anchor="middle">重新选择文件</text>
+
+  <!-- Dashed divider separating the two states -->
+  <line x1="16" y1="272" x2="344" y2="272" stroke="#E6E1E5" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="180" y="290" font-size="10" fill="#CAC4D0" text-anchor="middle">— 未配置文件时替换上方 —</text>
+
+  <!-- ── 未配置状态 ─────────────────────────────── -->
+  <text x="16" y="314" font-size="10" fill="#79747E">【未配置状态】</text>
+
+  <!-- Warning card with red left bar -->
+  <rect x="16" y="320" width="328" height="88" rx="12" fill="#FFFBFE" stroke="#E0E0E0" stroke-width="1"/>
+  <!-- Red left bar (4dp) -->
+  <rect x="16" y="320" width="4" height="88" rx="2" fill="#B3261E"/>
+  <!-- Warning text (bodyMedium, OnSurfaceVariant) -->
+  <text x="32" y="345" font-size="14" fill="#49454F">尚未设置，请选择保存文件</text>
+  <!-- 选择保存文件 FilledButton (Primary, full width inside card) -->
+  <rect x="32" y="358" width="300" height="38" rx="19" fill="#6650A4"/>
+  <text x="182" y="382" font-size="14" font-weight="500" fill="#FFFFFF" text-anchor="middle">选择保存文件 ▶</text>
+
+  <!-- Description text (bodySmall, OnSurfaceVariant) -->
+  <text x="16" y="434" font-size="12" fill="#49454F">保存的文字将追加到文件末尾，每条记录包含时间戳。</text>
+  <!-- Example text (bodySmall, Outline) -->
+  <text x="16" y="454" font-size="12" fill="#79747E">示例：[2026-04-21 09:00:00] 这是保存的内容</text>
+
+  <!-- Screen label (annotation) -->
+  <text x="180" y="526" font-size="10" fill="#79747E" text-anchor="middle">设置页（已配置 / 未配置两种状态）</text>
+</svg>

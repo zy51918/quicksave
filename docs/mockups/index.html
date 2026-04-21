@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickSave UI Mockups</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #EDE7F6;
+      font-family: system-ui, -apple-system, 'PingFang SC', 'Roboto', sans-serif;
+      padding: 32px 24px;
+    }
+    h1 { font-size: 24px; font-weight: 500; color: #1C1B1F; margin-bottom: 4px; }
+    .meta { font-size: 13px; color: #49454F; margin-bottom: 32px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 28px;
+      justify-items: center;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10), 0 8px 24px rgba(0,0,0,0.07);
+      width: 360px;
+    }
+    .card-wide {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10), 0 8px 24px rgba(0,0,0,0.07);
+      width: 760px;
+    }
+    .card img, .card-wide img { display: block; width: 100%; height: auto; }
+    .label {
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #6650A4;
+      border-top: 1px solid #E6E1E5;
+      background: #FFFBFE;
+      text-align: center;
+    }
+    .grid-wide {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+  </style>
+</head>
+<body>
+  <h1>QuickSave — UI Mockups</h1>
+  <p class="meta">HIE 设计师输出 · v2.0 · 2026-04-21 · Material Design 3 / Material You · 参考 UI_DESIGN-clipboard-save.md v2.0</p>
+
+  <div class="grid-wide">
+    <div class="card-wide">
+      <img src="settings.svg" alt="设置页">
+      <div class="label">③ 设置页（已配置 / 未配置两种状态）</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <img src="home-normal.svg" alt="主页 正常状态">
+      <div class="label">① 主页 — 正常状态（有剪切板内容 + 已配置文件）</div>
+    </div>
+    <div class="card">
+      <img src="home-no-file.svg" alt="主页 未配置文件">
+      <div class="label">② 主页 — 未配置文件警告状态</div>
+    </div>
+    <div class="card">
+      <img src="notification.svg" alt="常驻通知">
+      <div class="label">④ 常驻通知设计</div>
+    </div>
+  </div>
+</body>
+</html>
