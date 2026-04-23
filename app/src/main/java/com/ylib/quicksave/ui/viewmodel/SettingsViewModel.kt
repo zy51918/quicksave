@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.ylib.quicksave.app.QuickSaveApplication
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -35,12 +36,14 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         if (trimmed.isBlank() || categories.value.any { it == trimmed }) return
         viewModelScope.launch {
             repo.setCategories(categories.value.map { if (it == oldName) trimmed else it })
+            if (repo.getSelectedCategory().first() == oldName) repo.setSelectedCategory(trimmed)
         }
     }
 
     fun deleteCategory(name: String) {
         viewModelScope.launch {
             repo.setCategories(categories.value.filter { it != name })
+            if (repo.getSelectedCategory().first() == name) repo.setSelectedCategory(null)
         }
     }
 

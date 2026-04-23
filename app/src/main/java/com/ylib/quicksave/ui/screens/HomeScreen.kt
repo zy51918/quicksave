@@ -250,7 +250,7 @@ fun CategoryNameDialog(
         text = {
             OutlinedTextField(
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = { name = it.replace("\n", "") },
                 placeholder = { Text("分类名称") },
                 isError = isDuplicate,
                 supportingText = if (isDuplicate) {
