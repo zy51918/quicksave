@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,13 +14,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -32,11 +37,15 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -120,7 +129,39 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                                 maxLines = 3,
                                 overflow = TextOverflow.Ellipsis
                             )
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(10.dp))
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                items(uiState.categories) { category ->
+                                    FilterChip(
+                                        selected = uiState.selectedCategory == category,
+                                        onClick = {
+                                            viewModel.selectCategory(
+                                                if (uiState.selectedCategory == category) null else category
+                                            )
+                                        },
+                                        label = { Text(category) }
+                                    )
+                                }
+                                item {
+                                    FilterChip(
+                                        selected = false,
+                                        onClick = { viewModel.showAddCategoryDialog() },
+                                        label = { Text("＋ 新增") },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            labelColor = MaterialTheme.colorScheme.outline
+                                        ),
+                                        border = FilterChipDefaults.filterChipBorder(
+                                            enabled = true,
+                                            selected = false,
+                                            borderColor = MaterialTheme.colorScheme.outlineVariant
+                                        )
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(10.dp))
                             Button(
                                 onClick = { viewModel.saveClipboard() },
                                 enabled = !uiState.isSaving,
@@ -175,7 +216,61 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                 }
             )
         }
+
+        if (uiState.showAddCategoryDialog) {
+            CategoryNameDialog(
+                title = "新增分类",
+                initialName = "",
+                existingNames = uiState.categories,
+                onConfirm = { name ->
+                    viewModel.addCategory(name)
+                    viewModel.dismissAddCategoryDialog()
+                },
+                onDismiss = { viewModel.dismissAddCategoryDialog() }
+            )
+        }
     }
+}
+
+@Composable
+fun CategoryNameDialog(
+    title: String,
+    initialName: String,
+    existingNames: List<String>,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var name by rememberSaveable { mutableStateOf(initialName) }
+    val isDuplicate = existingNames.any { it == name.trim() }
+    val isBlank = name.trim().isBlank()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                placeholder = { Text("分类名称") },
+                isError = isDuplicate,
+                supportingText = if (isDuplicate) {
+                    { Text("分类名已存在", color = MaterialTheme.colorScheme.error) }
+                } else null,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(name.trim()) },
+                enabled = !isBlank && !isDuplicate
+            ) { Text("确定") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("取消") }
+        }
+    )
 }
 
 @Composable
