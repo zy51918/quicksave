@@ -60,4 +60,26 @@ class ClipRepositoryImplTest {
         assertTrue(result.isFailure)
         assertEquals("目标文件无写入权限，请重新选择", result.exceptionOrNull()?.message)
     }
+
+    @Test
+    fun `saveEntry with category returns success`() = runTest {
+        whenever(dataStore.getTargetFileUri()).thenReturn(flowOf("content://test/file"))
+        whenever(fileDataSource.isWritable(any())).thenReturn(true)
+
+        val result = repo.saveEntry("hello world", category = "工作")
+
+        assertTrue(result.isSuccess)
+    }
+
+    @Test
+    fun `saveEntry propagates appendLine exception as failure`() = runTest {
+        whenever(dataStore.getTargetFileUri()).thenReturn(flowOf("content://test/file"))
+        whenever(fileDataSource.isWritable(any())).thenReturn(true)
+        whenever(fileDataSource.appendLine(any(), any())).thenThrow(RuntimeException("IO error"))
+
+        val result = repo.saveEntry("text", category = null)
+
+        assertTrue(result.isFailure)
+        assertEquals("IO error", result.exceptionOrNull()?.message)
+    }
 }
