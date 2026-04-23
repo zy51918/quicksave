@@ -27,9 +27,13 @@ class AppDataStoreImpl(private val context: Context) : AppDataStore {
         context.dataStore.data.map { it[TARGET_FILE_URI] }
 
     override suspend fun saveCategories(categories: List<String>) {
-        context.dataStore.edit { it[CATEGORIES] = categories.joinToString("\n") }
+        context.dataStore.edit { prefs ->
+            if (categories.isEmpty()) prefs.remove(CATEGORIES)
+            else prefs[CATEGORIES] = categories.joinToString("\n")
+        }
     }
 
+    // Categories stored as newline-delimited string; category names from UI are single-line
     override fun getCategories(): Flow<List<String>> =
         context.dataStore.data.map {
             it[CATEGORIES]?.split("\n")?.filter { c -> c.isNotBlank() } ?: emptyList()
