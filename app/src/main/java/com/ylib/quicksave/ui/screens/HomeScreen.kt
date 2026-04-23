@@ -240,7 +240,7 @@ fun CategoryNameDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var name by rememberSaveable { mutableStateOf(initialName) }
+    var name by rememberSaveable(initialName) { mutableStateOf(initialName) }
     val isDuplicate = existingNames.any { it == name.trim() }
     val isBlank = name.trim().isBlank()
 
