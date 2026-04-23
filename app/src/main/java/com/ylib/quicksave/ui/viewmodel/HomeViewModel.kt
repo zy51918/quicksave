@@ -9,6 +9,7 @@ import com.ylib.quicksave.app.QuickSaveApplication
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -17,7 +18,10 @@ data class HomeUiState(
     val clipText: String? = null,
     val isSaving: Boolean = false,
     val showClearDialog: Boolean = false,
-    val lastSaveResult: SaveResult? = null
+    val lastSaveResult: SaveResult? = null,
+    val categories: List<String> = emptyList(),
+    val selectedCategory: String? = null,
+    val showAddCategoryDialog: Boolean = false
 )
 
 sealed class SaveResult {
@@ -34,8 +38,20 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         viewModelScope.launch {
-            repo.getTargetFileUri().collect { uri ->
-                _uiState.update { it.copy(targetFileUri = uri?.toString()) }
+            combine(
+                repo.getTargetFileUri(),
+                repo.getCategories(),
+                repo.getSelectedCategory()
+            ) { uri, categories, selected ->
+                Triple(uri, categories, selected?.takeIf { it in categories })
+            }.collect { (uri, categories, selected) ->
+                _uiState.update {
+                    it.copy(
+                        targetFileUri = uri?.toString(),
+                        categories = categories,
+                        selectedCategory = selected
+                    )
+                }
             }
         }
     }
@@ -48,9 +64,10 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
 
     fun saveClipboard() {
         val text = _uiState.value.clipText ?: return
+        val category = _uiState.value.selectedCategory
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
-            val result = repo.saveEntry(text)
+            val result = repo.saveEntry(text, category)
             _uiState.update {
                 it.copy(
                     isSaving = false,
@@ -61,6 +78,21 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun selectCategory(category: String?) {
+        viewModelScope.launch { repo.setSelectedCategory(category) }
+    }
+
+    fun addCategory(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isBlank() || _uiState.value.categories.any { it == trimmed }) return
+        viewModelScope.launch {
+            repo.setCategories(_uiState.value.categories + trimmed)
+            repo.setSelectedCategory(trimmed)
+        }
+    }
+
+    fun showAddCategoryDialog() = _uiState.update { it.copy(showAddCategoryDialog = true) }
+    fun dismissAddCategoryDialog() = _uiState.update { it.copy(showAddCategoryDialog = false) }
     fun showClearDialog() = _uiState.update { it.copy(showClearDialog = true) }
     fun dismissClearDialog() = _uiState.update { it.copy(showClearDialog = false) }
     fun clearLastSaveResult() = _uiState.update { it.copy(lastSaveResult = null) }
