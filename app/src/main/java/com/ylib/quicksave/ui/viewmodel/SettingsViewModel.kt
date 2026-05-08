@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.ylib.quicksave.app.QuickSaveApplication
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -17,7 +18,36 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     val targetFileUri: StateFlow<Uri?> = repo.getTargetFileUri()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    val categories: StateFlow<List<String>> = repo.getCategories()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     fun setTargetFile(uri: Uri) {
         viewModelScope.launch { repo.setTargetFile(uri) }
+    }
+
+    fun addCategory(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isBlank() || categories.value.any { it == trimmed }) return
+        viewModelScope.launch { repo.setCategories(categories.value + trimmed) }
+    }
+
+    fun renameCategory(oldName: String, newName: String) {
+        val trimmed = newName.trim()
+        if (trimmed.isBlank() || categories.value.any { it == trimmed }) return
+        viewModelScope.launch {
+            repo.setCategories(categories.value.map { if (it == oldName) trimmed else it })
+            if (repo.getSelectedCategory().first() == oldName) repo.setSelectedCategory(trimmed)
+        }
+    }
+
+    fun deleteCategory(name: String) {
+        viewModelScope.launch {
+            repo.setCategories(categories.value.filter { it != name })
+            if (repo.getSelectedCategory().first() == name) repo.setSelectedCategory(null)
+        }
+    }
+
+    fun reorderCategories(reordered: List<String>) {
+        viewModelScope.launch { repo.setCategories(reordered) }
     }
 }

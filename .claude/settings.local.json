@@ -3,5 +3,8 @@
     "allow": [
       "Bash(./gradlew assembleDebug)"
     ]
+  },
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": true
   }
 }

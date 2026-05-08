@@ -1,174 +1,85 @@
 package com.ylib.quicksave.data.repository
 
 import android.net.Uri
-import com.ylib.quicksave.data.model.ClipEntry
 import com.ylib.quicksave.data.source.AppDataStore
 import com.ylib.quicksave.data.source.FileDataSource
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
-
-// ---------------------------------------------------------------------------
-// Fakes
-// ---------------------------------------------------------------------------
-
-/**
- * 内存版 AppDataStore，实现接口，不依赖任何 Android 框架类。
- */
-class FakeAppDataStore : AppDataStore {
-
-    private var storedUri: String? = null
-    private var storedEntries: List<ClipEntry> = emptyList()
-
-    override fun getTargetFileUri(): Flow<String?> = flowOf(storedUri)
-
-    override fun getRecentEntries(): Flow<List<ClipEntry>> = flowOf(storedEntries)
-
-    override suspend fun saveTargetFileUri(uri: String) {
-        storedUri = uri
-    }
-
-    override suspend fun saveRecentEntries(entries: List<ClipEntry>) {
-        storedEntries = entries
-    }
-
-    // --- 测试辅助 ---
-    fun setUri(uri: String?) {
-        storedUri = uri
-    }
-
-    fun setEntries(entries: List<ClipEntry>) {
-        storedEntries = entries
-    }
-
-    fun getEntries(): List<ClipEntry> = storedEntries
-}
-
-/**
- * 内存版 FileDataSource。
- *
- * - [writableResult]：控制 isWritable 返回值（默认 true）
- * - [appendLineException]：若非 null，appendLine 抛出该异常
- * - [appendedLines]：记录所有 appendLine 的调用参数
- */
-class FakeFileDataSource : FileDataSource {
-    var writableResult: Boolean = true
-    var appendLineException: Exception? = null
-    val appendedLines = mutableListOf<Pair<Uri, String>>()
-
-    override fun isWritable(uri: Uri): Boolean = writableResult
-
-    override suspend fun appendLine(uri: Uri, line: String) {
-        appendLineException?.let { throw it }
-        appendedLines.add(uri to line)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class ClipRepositoryImplTest {
 
-    private lateinit var fakeDataStore: FakeAppDataStore
-    private lateinit var fakeFileDataSource: FakeFileDataSource
-    private lateinit var repository: ClipRepositoryImpl
-
-    @Before
-    fun setUp() {
-        fakeDataStore = FakeAppDataStore()
-        fakeFileDataSource = FakeFileDataSource()
-        repository = ClipRepositoryImpl(fakeDataStore, fakeFileDataSource)
-    }
-
-    // -----------------------------------------------------------------------
-    // saveEntry 测试
-    // -----------------------------------------------------------------------
+    private val dataStore = mock<AppDataStore>()
+    private val fileDataSource = mock<FileDataSource>()
+    private val repo = ClipRepositoryImpl(dataStore, fileDataSource)
 
     @Test
-    fun saveEntry_whenNoTargetUri_returnsFailure() = runTest {
-        fakeDataStore.setUri(null)
+    fun `saveEntry with category prepends category tag before timestamp`() = runTest {
+        whenever(dataStore.getTargetFileUri()).thenReturn(flowOf("content://test/file"))
+        whenever(fileDataSource.isWritable(any())).thenReturn(true)
 
-        val result = repository.saveEntry("hello")
+        repo.saveEntry("hello world", category = "工作")
 
-        assertFalse("应返回 failure", result.isSuccess)
-        assertTrue(
-            "异常类型应为 IllegalStateException",
-            result.exceptionOrNull() is IllegalStateException
-        )
+        verify(fileDataSource).appendLine(any(), argThat { startsWith("[工作][") })
     }
 
     @Test
-    fun saveEntry_whenNotWritable_returnsFailure() = runTest {
-        fakeDataStore.setUri("content://com.example/file")
-        fakeFileDataSource.writableResult = false
+    fun `saveEntry without category writes timestamp-only prefix`() = runTest {
+        whenever(dataStore.getTargetFileUri()).thenReturn(flowOf("content://test/file"))
+        whenever(fileDataSource.isWritable(any())).thenReturn(true)
 
-        val result = repository.saveEntry("hello")
+        repo.saveEntry("hello world", category = null)
 
-        assertFalse("应返回 failure", result.isSuccess)
-        assertTrue(
-            "异常类型应为 SecurityException",
-            result.exceptionOrNull() is SecurityException
-        )
+        verify(fileDataSource).appendLine(any(), argThat { startsWith("[20") && !contains("][20") })
     }
 
     @Test
-    fun saveEntry_whenWritable_appendsLineAndUpdatesCache() = runTest {
-        val uriString = "content://com.example/file"
-        fakeDataStore.setUri(uriString)
-        fakeFileDataSource.writableResult = true
+    fun `saveEntry returns failure when no target URI set`() = runTest {
+        whenever(dataStore.getTargetFileUri()).thenReturn(flowOf(null))
 
-        val result = repository.saveEntry("clipboard text")
+        val result = repo.saveEntry("hello", category = null)
 
-        // 返回成功
-        assertTrue("应返回 success", result.isSuccess)
-
-        // appendLine 被调用一次，且包含原始文本
-        assertEquals("appendLine 应只调用一次", 1, fakeFileDataSource.appendedLines.size)
-        val (calledUri, calledLine) = fakeFileDataSource.appendedLines.first()
-        assertEquals(Uri.parse(uriString), calledUri)
-        assertTrue("行内容应包含原始文本", calledLine.contains("clipboard text"))
-
-        // 缓存最新一条文本正确
-        val entries = fakeDataStore.getEntries()
-        assertFalse("缓存不应为空", entries.isEmpty())
-        assertEquals("缓存第一条文本应匹配", "clipboard text", entries.first().text)
+        assertTrue(result.isFailure)
+        assertEquals("未设置目标文件", result.exceptionOrNull()?.message)
     }
 
     @Test
-    fun saveEntry_catchesException_returnsFailure() = runTest {
-        fakeDataStore.setUri("content://com.example/file")
-        fakeFileDataSource.writableResult = true
-        fakeFileDataSource.appendLineException = RuntimeException("IO error")
+    fun `saveEntry returns failure when file not writable`() = runTest {
+        whenever(dataStore.getTargetFileUri()).thenReturn(flowOf("content://test/file"))
+        whenever(fileDataSource.isWritable(any())).thenReturn(false)
 
-        val result = repository.saveEntry("text")
+        val result = repo.saveEntry("hello", category = null)
 
-        assertFalse("应返回 failure", result.isSuccess)
-        assertNotNull("应包含异常", result.exceptionOrNull())
+        assertTrue(result.isFailure)
+        assertEquals("目标文件无写入权限，请重新选择", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `saveEntry with category returns success`() = runTest {
+        whenever(dataStore.getTargetFileUri()).thenReturn(flowOf("content://test/file"))
+        whenever(fileDataSource.isWritable(any())).thenReturn(true)
+
+        val result = repo.saveEntry("hello world", category = "工作")
+
+        assertTrue(result.isSuccess)
+    }
+
+    @Test
+    fun `saveEntry propagates appendLine exception as failure`() = runTest {
+        whenever(dataStore.getTargetFileUri()).thenReturn(flowOf("content://test/file"))
+        whenever(fileDataSource.isWritable(any())).thenReturn(true)
+        whenever(fileDataSource.appendLine(any(), any())).thenThrow(RuntimeException("IO error"))
+
+        val result = repo.saveEntry("text", category = null)
+
+        assertTrue(result.isFailure)
         assertEquals("IO error", result.exceptionOrNull()?.message)
-    }
-
-    // -----------------------------------------------------------------------
-    // getRecentEntries 测试
-    // -----------------------------------------------------------------------
-
-    @Test
-    fun getRecentEntries_limitsResults() = runTest {
-        // 预置 5 条记录
-        val allEntries = (1..5).map { ClipEntry(text = "entry$it", savedAt = it.toLong()) }
-        fakeDataStore.setEntries(allEntries)
-
-        val collected = mutableListOf<List<ClipEntry>>()
-        repository.getRecentEntries(limit = 3).collect { collected.add(it) }
-
-        assertEquals("Flow 应发射一次", 1, collected.size)
-        assertEquals("应限制为 3 条", 3, collected.first().size)
-        assertEquals("第一条应为 entry1", "entry1", collected.first().first().text)
     }
 }

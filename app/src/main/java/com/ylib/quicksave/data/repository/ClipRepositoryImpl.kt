@@ -17,12 +17,13 @@ class ClipRepositoryImpl(
 
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
 
-    override suspend fun saveEntry(text: String): Result<Unit> = runCatching {
+    override suspend fun saveEntry(text: String, category: String?): Result<Unit> = runCatching {
         val uriString = dataStore.getTargetFileUri().first()
             ?: throw IllegalStateException("未设置目标文件")
         val uri = Uri.parse(uriString)
         if (!fileDataSource.isWritable(uri)) throw SecurityException("目标文件无写入权限，请重新选择")
-        fileDataSource.appendLine(uri, "[${dateFormatter.format(Date())}] $text")
+        val prefix = if (category != null) "[$category]" else ""
+        fileDataSource.appendLine(uri, "$prefix[${dateFormatter.format(Date())}] $text")
     }
 
     override suspend fun setTargetFile(uri: Uri) {
@@ -39,4 +40,14 @@ class ClipRepositoryImpl(
         if (!fileDataSource.isWritable(uri)) throw SecurityException("目标文件无写入权限，请重新选择")
         fileDataSource.clearFile(uri)
     }
+
+    override fun getCategories(): Flow<List<String>> = dataStore.getCategories()
+
+    override suspend fun setCategories(categories: List<String>) =
+        dataStore.saveCategories(categories)
+
+    override fun getSelectedCategory(): Flow<String?> = dataStore.getSelectedCategory()
+
+    override suspend fun setSelectedCategory(category: String?) =
+        dataStore.saveSelectedCategory(category)
 }

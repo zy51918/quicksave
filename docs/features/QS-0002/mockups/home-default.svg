@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 600" width="360" height="600">
+  <defs>
+    <style>text { font-family: system-ui, -apple-system, Roboto, sans-serif; }</style>
+  </defs>
+
+  <!-- Screen background (Surface) -->
+  <rect width="360" height="600" fill="#FFFBFE" rx="12"/>
+  <rect width="360" height="600" fill="none" stroke="#E0E0E0" stroke-width="1" rx="12"/>
+
+  <!-- Status bar -->
+  <text x="12" y="17" font-size="11" fill="#49454F">9:41</text>
+  <text x="348" y="17" font-size="10" fill="#49454F" text-anchor="end">■ ▲ ⬤</text>
+
+  <!-- Title -->
+  <text x="16" y="67" font-size="28" font-weight="500" fill="#1C1B1F">QuickSave</text>
+
+  <!-- Settings OutlinedButton (right-aligned) -->
+  <rect x="272" y="88" width="72" height="36" rx="18" fill="none" stroke="#6650A4" stroke-width="1.5"/>
+  <text x="308" y="111" font-size="14" font-weight="500" fill="#6650A4" text-anchor="middle">设置</text>
+
+  <!-- ★ Shared category chip row (v1.2: TOP position, before all save sources) -->
+  <text x="16" y="148" font-size="11" font-weight="500" fill="#49454F">分类（可选）</text>
+  <rect x="16" y="156" width="58" height="32" rx="8" fill="#6650A4"/>
+  <text x="45" y="177" font-size="12" font-weight="500" fill="#FFFFFF" text-anchor="middle">✓ 工作</text>
+  <rect x="80" y="156" width="50" height="32" rx="8" fill="none" stroke="#CAC4D0" stroke-width="1"/>
+  <text x="105" y="177" font-size="12" font-weight="500" fill="#1C1B1F" text-anchor="middle">学习</text>
+  <rect x="136" y="156" width="50" height="32" rx="8" fill="none" stroke="#CAC4D0" stroke-width="1"/>
+  <text x="161" y="177" font-size="12" font-weight="500" fill="#1C1B1F" text-anchor="middle">生活</text>
+  <rect x="192" y="156" width="62" height="32" rx="8" fill="none" stroke="#79747E" stroke-width="1"/>
+  <text x="223" y="177" font-size="12" font-weight="500" fill="#79747E" text-anchor="middle">＋ 新增</text>
+
+  <!-- Clipboard content card (chip row removed in v1.2) -->
+  <rect x="16" y="206" width="328" height="110" rx="12" fill="#EADDFF"/>
+  <text x="28" y="227" font-size="11" font-weight="500" fill="#49454F">当前剪切板</text>
+  <text x="28" y="249" font-size="14" fill="#21005D">今天看到一篇关于 Android 开发的文章，其中</text>
+  <text x="28" y="269" font-size="14" fill="#21005D">提到了 Jetpack Compose 的最新特性…</text>
+
+  <rect x="212" y="284" width="120" height="36" rx="18" fill="#6650A4"/>
+  <text x="272" y="307" font-size="13" font-weight="500" fill="#FFFFFF" text-anchor="middle">保存到文件 ▶</text>
+
+  <!-- ★ Manual input card (v1.2 NEW) -->
+  <rect x="16" y="338" width="328" height="190" rx="12" fill="#FFFBFE" stroke="#79747E" stroke-width="1"/>
+  <text x="28" y="359" font-size="11" font-weight="500" fill="#49454F">手动输入</text>
+
+  <!-- OutlinedTextField (empty, placeholder visible) -->
+  <rect x="28" y="368" width="304" height="100" rx="8" fill="#FFFBFE" stroke="#79747E" stroke-width="1"/>
+  <text x="40" y="390" font-size="14" fill="#79747E" font-style="italic">在此输入要保存的文字</text>
+
+  <!-- Save button DISABLED state -->
+  <rect x="212" y="484" width="120" height="36" rx="18" fill="#6650A4" opacity="0.12"/>
+  <text x="272" y="507" font-size="13" font-weight="500" fill="#1C1B1F" opacity="0.38" text-anchor="middle">保存到文件 ▶</text>
+
+  <!-- Clear file button (Error color, full width) -->
+  <rect x="16" y="548" width="328" height="40" rx="20" fill="none" stroke="#B3261E" stroke-width="1.5"/>
+  <text x="180" y="573" font-size="14" font-weight="500" fill="#B3261E" text-anchor="middle">清空保存文件内容</text>
+
+  <text x="180" y="596" font-size="10" fill="#79747E" text-anchor="middle">主页 — 默认态（分类 Chip 行置顶 + 剪切板 + 输入框 / 保存按钮禁用）</text>
+</svg>
