@@ -1,7 +1,7 @@
 # QuickSave — 架构设计文档（ARCH）
 
-> 版本：1.0
-> 日期：2026-05-07
+> 版本：1.2
+> 日期：2026-05-08
 > 作者：开发工程师
 
 本文档描述 QuickSave Android 应用的项目级架构现状，反映已交付的 MVP（QS-0001）与分类标签（category-tag）合并后的代码组织。Feature 级架构变更详见 [`docs/ARCH_changelist.md`](ARCH_changelist.md) 与 `docs/features/<feature_id>/arch-<feature_name>.md`。
@@ -227,8 +227,9 @@ val clipRepository: ClipRepository by lazy { ClipRepositoryImpl(dataStore, fileD
 
 ## 十、Feature 架构文档索引
 
-| feature_id | 范围 | 文档 |
-|------------|------|------|
-| `QS-0001` | MVP — 项目骨架（分层、Repository、SAF、前台 Service、Compose 导航） | [features/QS-0001/arch-mvp.md](features/QS-0001/arch-mvp.md) |
+| feature_id | 范围 | 架构变更 | 文档 |
+|------------|------|---------|------|
+| `QS-0001` | MVP — 项目骨架（分层、Repository、SAF、前台 Service、Compose 导航） | 首次建立 | [features/QS-0001/arch-mvp.md](features/QS-0001/arch-mvp.md) |
+| `QS-0002` | 手动输入保存（v1.2，已交付） | **无** — 仅 UI 层增量（HomeUiState 字段拆分、HomeScreen 抽出 3 个 Composable）；Repository / DataStore / Service / 跨模块协议全部不变 | — |
 
-> 后续 feature 若引入架构变更（新增模块、修改跨层协议），需在本表追加并新建 `arch-<feature_name>.md`。仅做实现变更（不动接口）的 feature 不出 arch 文档。
+> 后续 feature 若引入架构变更（新增模块、修改跨层协议），需在本表追加并新建 `arch-<feature_name>.md`。仅做实现变更（不动接口）的 feature 在表中标注「无」即可，不需要单独的 arch 文档。
