@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360" width="360" height="360">
+  <defs>
+    <style>text { font-family: system-ui, -apple-system, Roboto, sans-serif; }</style>
+  </defs>
+
+  <!-- Screen background (Surface) -->
+  <rect width="360" height="360" fill="#FFFBFE" rx="12"/>
+  <rect width="360" height="360" fill="none" stroke="#E0E0E0" stroke-width="1" rx="12"/>
+
+  <!-- Status bar -->
+  <text x="12" y="17" font-size="11" fill="#49454F">9:41</text>
+  <text x="348" y="17" font-size="10" fill="#49454F" text-anchor="end">■ ▲ ⬤</text>
+
+  <!-- Title: QuickSave (headlineMedium 28sp/500) -->
+  <text x="16" y="67" font-size="28" font-weight="500" fill="#1C1B1F">QuickSave</text>
+
+  <!-- Warning card: 未配置文件 (red left bar + content) -->
+  <rect x="16" y="86" width="328" height="80" rx="12" fill="#FFFBFE" stroke="#E0E0E0" stroke-width="1"/>
+  <!-- Red left bar (4dp) -->
+  <rect x="16" y="86" width="4" height="80" rx="2" fill="#B3261E"/>
+  <!-- Warning title (titleSmall 14sp/500, Error color) -->
+  <text x="32" y="113" font-size="14" font-weight="500" fill="#B3261E">未设置保存文件</text>
+  <!-- "前往设置" OutlinedButton (Primary) -->
+  <rect x="32" y="122" width="80" height="32" rx="16" fill="none" stroke="#6650A4" stroke-width="1.5"/>
+  <text x="72" y="143" font-size="13" font-weight="500" fill="#6650A4" text-anchor="middle">前往设置</text>
+
+  <!-- Settings OutlinedButton (right-aligned, Primary, capsule) -->
+  <rect x="272" y="178" width="72" height="36" rx="18" fill="none" stroke="#6650A4" stroke-width="1.5"/>
+  <text x="308" y="201" font-size="14" font-weight="500" fill="#6650A4" text-anchor="middle">设置</text>
+
+  <!-- Empty clipboard state (bodySmall, OnSurfaceVariant, centered) -->
+  <text x="180" y="262" font-size="12" fill="#49454F" text-anchor="middle">剪切板为空，请先在其他应用复制文字</text>
+
+  <!-- State label (design annotation) -->
+  <text x="180" y="346" font-size="10" fill="#79747E" text-anchor="middle">主页 — 未配置文件警告状态</text>
+</svg>

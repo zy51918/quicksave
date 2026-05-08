@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 620" width="360" height="620">
+  <defs>
+    <style>text { font-family: system-ui, -apple-system, Roboto, sans-serif; }</style>
+  </defs>
+
+  <rect width="360" height="620" fill="#FFFBFE" rx="12"/>
+  <rect width="360" height="620" fill="none" stroke="#E0E0E0" stroke-width="1" rx="12"/>
+
+  <text x="12" y="17" font-size="11" fill="#49454F">9:41</text>
+  <text x="348" y="17" font-size="10" fill="#49454F" text-anchor="end">■ ▲ ⬤</text>
+
+  <text x="16" y="67" font-size="28" font-weight="500" fill="#1C1B1F">QuickSave</text>
+
+  <!-- Warning card (file not configured) -->
+  <rect x="16" y="86" width="328" height="80" rx="12" fill="#FFFBFE" stroke="#E0E0E0" stroke-width="1"/>
+  <rect x="16" y="86" width="4" height="80" rx="2" fill="#B3261E"/>
+  <text x="32" y="113" font-size="14" font-weight="500" fill="#B3261E">未设置保存文件</text>
+  <rect x="32" y="122" width="80" height="32" rx="16" fill="none" stroke="#6650A4" stroke-width="1.5"/>
+  <text x="72" y="143" font-size="13" font-weight="500" fill="#6650A4" text-anchor="middle">前往设置</text>
+
+  <!-- Settings OutlinedButton -->
+  <rect x="272" y="178" width="72" height="36" rx="18" fill="none" stroke="#6650A4" stroke-width="1.5"/>
+  <text x="308" y="201" font-size="14" font-weight="500" fill="#6650A4" text-anchor="middle">设置</text>
+
+  <!-- Shared chip row at top -->
+  <text x="16" y="238" font-size="11" font-weight="500" fill="#49454F">分类（可选）</text>
+  <rect x="16" y="246" width="50" height="32" rx="8" fill="none" stroke="#CAC4D0" stroke-width="1"/>
+  <text x="41" y="267" font-size="12" font-weight="500" fill="#1C1B1F" text-anchor="middle">工作</text>
+  <rect x="72" y="246" width="50" height="32" rx="8" fill="none" stroke="#CAC4D0" stroke-width="1"/>
+  <text x="97" y="267" font-size="12" font-weight="500" fill="#1C1B1F" text-anchor="middle">学习</text>
+  <rect x="128" y="246" width="50" height="32" rx="8" fill="none" stroke="#CAC4D0" stroke-width="1"/>
+  <text x="153" y="267" font-size="12" font-weight="500" fill="#1C1B1F" text-anchor="middle">生活</text>
+  <rect x="184" y="246" width="62" height="32" rx="8" fill="none" stroke="#79747E" stroke-width="1"/>
+  <text x="215" y="267" font-size="12" font-weight="500" fill="#79747E" text-anchor="middle">＋ 新增</text>
+
+  <!-- Clipboard empty hint -->
+  <text x="180" y="306" font-size="12" fill="#49454F" text-anchor="middle">剪切板为空，请先在其他应用复制文字</text>
+
+  <!-- Manual input card -->
+  <rect x="16" y="336" width="328" height="190" rx="12" fill="#FFFBFE" stroke="#79747E" stroke-width="1"/>
+  <text x="28" y="357" font-size="11" font-weight="500" fill="#49454F">手动输入</text>
+
+  <rect x="28" y="366" width="304" height="100" rx="8" fill="#FFFBFE" stroke="#79747E" stroke-width="1"/>
+  <text x="40" y="388" font-size="14" fill="#1C1B1F">想到一个新点子，准备写下来…</text>
+
+  <!-- Save button enabled (will trigger snackbar prompting to set file) -->
+  <rect x="212" y="482" width="120" height="36" rx="18" fill="#6650A4"/>
+  <text x="272" y="505" font-size="13" font-weight="500" fill="#FFFFFF" text-anchor="middle">保存到文件 ▶</text>
+
+  <!-- Snackbar mock -->
+  <rect x="16" y="548" width="328" height="36" rx="6" fill="#322F35"/>
+  <text x="28" y="571" font-size="13" fill="#FFFFFF">请先在设置中选择保存文件</text>
+
+  <text x="180" y="608" font-size="10" fill="#79747E" text-anchor="middle">主页 — 未配置文件态（分类置顶 + 输入保留 + Snackbar 引导）</text>
+</svg>

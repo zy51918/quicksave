@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickSave QS-0002 (Manual Input) — UI Mockups</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #EDE7F6;
+      font-family: system-ui, -apple-system, 'PingFang SC', 'Roboto', sans-serif;
+      padding: 32px 24px;
+    }
+    h1 { font-size: 24px; font-weight: 500; color: #1C1B1F; margin-bottom: 4px; }
+    .meta { font-size: 13px; color: #49454F; margin-bottom: 24px; }
+    .delta {
+      background: #FFFBFE;
+      border-left: 4px solid #6650A4;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #49454F;
+      margin-bottom: 28px;
+    }
+    .delta b { color: #1C1B1F; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 28px;
+      justify-items: center;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10), 0 8px 24px rgba(0,0,0,0.07);
+      width: 360px;
+    }
+    .card img { display: block; width: 100%; height: auto; }
+    .label {
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #6650A4;
+      border-top: 1px solid #E6E1E5;
+      background: #FFFBFE;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>QuickSave QS-0002 (Manual Input) — UI Mockups</h1>
+  <p class="meta">HIE 设计师输出 · 2026-05-08 · v1.2 规划 · Material Design 3 · 参考 docs/features/QS-0002/ui-manual-input.md</p>
+
+  <div class="delta">
+    <b>v1.2 关键变更：</b>
+    分类 Chip 行从剪切板卡内部抽出，<b>上移到主页最上方</b>（设置按钮下方），让用户线性决策"先选分类 → 再选保存来源"；新增手动输入卡（Surface 背景 + 多行 OutlinedTextField + 保存按钮），与剪切板卡共享分类与目标文件。
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <img src="home-default.svg" alt="主页 默认态">
+      <div class="label">① 默认态（剪切板有内容 + 输入框为空）</div>
+    </div>
+    <div class="card">
+      <img src="home-typed.svg" alt="主页 已输入态">
+      <div class="label">② 已输入态（输入框聚焦 + 保存按钮启用）</div>
+    </div>
+    <div class="card">
+      <img src="home-no-file.svg" alt="主页 未配置文件态">
+      <div class="label">③ 未配置文件态（输入保留 + Snackbar 引导）</div>
+    </div>
+  </div>
+</body>
+</html>

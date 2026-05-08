@@ -6,6 +6,7 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ylib.quicksave.app.QuickSaveApplication
+import com.ylib.quicksave.data.repository.ClipRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +17,9 @@ import kotlinx.coroutines.launch
 data class HomeUiState(
     val targetFileUri: String? = null,
     val clipText: String? = null,
-    val isSaving: Boolean = false,
+    val isClipSaving: Boolean = false,
+    val isManualSaving: Boolean = false,
+    val manualInputText: String = "",
     val showClearDialog: Boolean = false,
     val lastSaveResult: SaveResult? = null,
     val categories: List<String> = emptyList(),
@@ -30,9 +33,11 @@ sealed class SaveResult {
     data class Failure(val message: String) : SaveResult()
 }
 
-class HomeViewModel(app: Application) : AndroidViewModel(app) {
+class HomeViewModel @JvmOverloads constructor(
+    app: Application,
+    private val repo: ClipRepository = (app as QuickSaveApplication).clipRepository
+) : AndroidViewModel(app) {
 
-    private val repo = (app as QuickSaveApplication).clipRepository
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
@@ -66,14 +71,44 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
         val text = _uiState.value.clipText ?: return
         val category = _uiState.value.selectedCategory
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true) }
+            _uiState.update { it.copy(isClipSaving = true) }
             val result = repo.saveEntry(text, category)
             _uiState.update {
                 it.copy(
-                    isSaving = false,
+                    isClipSaving = false,
                     lastSaveResult = if (result.isSuccess) SaveResult.Success
                     else SaveResult.Failure(result.exceptionOrNull()?.message ?: "保存失败")
                 )
+            }
+        }
+    }
+
+    fun updateManualInput(text: String) {
+        _uiState.update { it.copy(manualInputText = text) }
+    }
+
+    fun saveManualInput() {
+        val text = _uiState.value.manualInputText
+        if (text.isBlank()) return
+        val category = _uiState.value.selectedCategory
+        viewModelScope.launch {
+            _uiState.update { it.copy(isManualSaving = true) }
+            val result = repo.saveEntry(text, category)
+            _uiState.update {
+                if (result.isSuccess) {
+                    it.copy(
+                        isManualSaving = false,
+                        manualInputText = "",
+                        lastSaveResult = SaveResult.Success
+                    )
+                } else {
+                    it.copy(
+                        isManualSaving = false,
+                        lastSaveResult = SaveResult.Failure(
+                            result.exceptionOrNull()?.message ?: "保存失败"
+                        )
+                    )
+                }
             }
         }
     }

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 320" width="360" height="320">
+  <defs>
+    <style>text { font-family: system-ui, -apple-system, Roboto, sans-serif; }</style>
+  </defs>
+
+  <!-- Scrim background (dimmed surface behind dialog) -->
+  <rect width="360" height="320" fill="#1C1B1F" opacity="0.32" rx="12"/>
+  <rect width="360" height="320" fill="none" stroke="#E0E0E0" stroke-width="1" rx="12"/>
+
+  <!-- AlertDialog container (Material 3, 28dp radius) -->
+  <rect x="32" y="80" width="296" height="184" rx="28" fill="#FFFBFE"/>
+  <rect x="32" y="80" width="296" height="184" rx="28" fill="none" stroke="#CAC4D0" stroke-width="1"/>
+
+  <!-- Dialog title (headlineSmall 24sp/400, OnSurface) -->
+  <text x="56" y="124" font-size="20" font-weight="500" fill="#1C1B1F">清空保存文件</text>
+
+  <!-- Body text (bodyMedium 14sp, OnSurfaceVariant) -->
+  <text x="56" y="158" font-size="14" fill="#49454F">确认清空文件内全部内容？</text>
+  <text x="56" y="178" font-size="14" fill="#49454F">此操作不可恢复。</text>
+
+  <!-- Action row (right-aligned text buttons) -->
+  <!-- Cancel TextButton (Primary text) -->
+  <text x="232" y="232" font-size="14" font-weight="500" fill="#6650A4" text-anchor="middle">取消</text>
+
+  <!-- Clear TextButton (Error color, danger emphasis) -->
+  <text x="296" y="232" font-size="14" font-weight="500" fill="#B3261E" text-anchor="middle">清空</text>
+
+  <!-- Annotations -->
+  <text x="180" y="294" font-size="10" fill="#79747E" text-anchor="middle">清空保存文件 — 二次确认对话框（US-05）</text>
+  <text x="180" y="308" font-size="10" fill="#79747E" text-anchor="middle">主操作「清空」使用 Error 色与左侧「取消」区分</text>
+</svg>

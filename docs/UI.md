@@ -1,4 +1,4 @@
-# QuickSave — 设计文档（DESIGN）
+# QuickSave — UI 交互设计文档（UI）
 
 > 版本：1.0
 > 日期：2026-04-29
@@ -292,3 +292,14 @@ Data Layer
 | [mockups/settings.svg](mockups/settings.svg) | 设置页（已配置 / 未配置两种状态） |
 | [mockups/notification.svg](mockups/notification.svg) | 常驻通知设计 |
 | [mockups/index.html](mockups/index.html) | 全部设计图查看器 |
+
+---
+
+## 十、Feature UI 文档索引
+
+| feature_id | 范围 | 状态 | 文档 | mockups |
+|------------|------|------|------|---------|
+| `QS-0001` | MVP（剪切板保存、目标文件配置、清空、常驻通知） | 已交付 | [features/QS-0001/ui-mvp.md](features/QS-0001/ui-mvp.md) | [features/QS-0001/mockups/](features/QS-0001/mockups/) |
+| `QS-0002` | 手动输入保存（主页新增多行输入卡，Chip 行上移到最顶层） | 规划中 v1.2 | [features/QS-0002/ui-manual-input.md](features/QS-0002/ui-manual-input.md) | [features/QS-0002/mockups/](features/QS-0002/mockups/) |
+
+> 当 `QS-0002` 实施完成时，§3.1 主页布局需更新：将 Chip 行从剪切板卡内移到顶层独立区块，并新增手动输入卡。
