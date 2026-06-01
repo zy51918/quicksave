@@ -29,7 +29,10 @@ class ClipboardMonitorService : Service() {
         startForeground(NOTIFICATION_ID, buildNotification())
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        startForeground(NOTIFICATION_ID, buildNotification())
+        return START_STICKY
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
