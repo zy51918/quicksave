@@ -165,6 +165,16 @@ class OverlayService : Service() {
             collapse()
             onRecordClicked()
         }
+        recBtn.apply {
+            maxLines = 1
+            fontFeatureSettings = "tnum" // 等宽数字，计时更新不改变字宽
+            // 固定宽度槽位：按最长态实测，避免计时引起面板重排（抖动）
+            val longest = "录音中 00:00"
+            val contentWidth = paint.measureText(longest).toInt()
+            val lp = layoutParams as LinearLayout.LayoutParams
+            lp.width = contentWidth + dp(28)
+            layoutParams = lp
+        }
         recordButton = recBtn
         addView(recBtn)
     }
