@@ -17,4 +17,8 @@ object PermissionHelper {
             Manifest.permission.POST_NOTIFICATIONS
         ) == PackageManager.PERMISSION_GRANTED
     }
+
+    /** 是否已授予悬浮窗（SYSTEM_ALERT_WINDOW）权限。 */
+    fun canDrawOverlays(context: Context): Boolean =
+        android.provider.Settings.canDrawOverlays(context)
 }
