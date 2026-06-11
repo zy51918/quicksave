@@ -56,6 +56,11 @@
                 android:value="floatingWindow" />
         </service>
 
+        <service
+            android:name=".recorder.RecorderService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+
     </application>
 
 </manifest>
