@@ -59,7 +59,8 @@ class OverlayService : Service() {
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        createChannelAndForeground()
+        ensureChannel()
+        startForeground(NOTIFICATION_ID, buildNotification())
         scope.launch {
             val pos = overlayRepo().getPosition().first()
             addOverlay(pos)
@@ -71,6 +72,7 @@ class OverlayService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+        startForeground(NOTIFICATION_ID, buildNotification())
         return START_STICKY
     }
 
@@ -86,7 +88,7 @@ class OverlayService : Service() {
         (application as QuickSaveApplication).overlayRepository
 
     // --- 通知 / 前台 ---
-    private fun createChannelAndForeground() {
+    private fun ensureChannel() {
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (nm.getNotificationChannel(CHANNEL_ID) == null) {
             nm.createNotificationChannel(
@@ -94,12 +96,15 @@ class OverlayService : Service() {
                     .apply { description = "悬浮窗常驻通知" }
             )
         }
+    }
+
+    private fun buildNotification(): android.app.Notification {
         val openIntent = PendingIntent.getActivity(
-            this, 0,
+            this, 1,
             Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+        return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_menu_view)
             .setContentTitle("QuickSave 悬浮窗")
             .setContentText("点击打开应用")
@@ -108,7 +113,6 @@ class OverlayService : Service() {
             .setSilent(true)
             .setContentIntent(openIntent)
             .build()
-        startForeground(NOTIFICATION_ID, notification)
     }
 
     // --- 叠加层视图 ---
@@ -117,6 +121,7 @@ class OverlayService : Service() {
         val root = FrameLayout(this)
         val handle = buildHandleView()
         val panel = buildPanelView()
+        // 必须用 GONE 而非 INVISIBLE：WRAP_CONTENT 窗口按可见子视图测量，收起态窗口才能缩到把手大小
         panel.visibility = View.GONE
         root.addView(handle)
         root.addView(panel)
@@ -184,12 +189,12 @@ class OverlayService : Service() {
             text = label
             isAllCaps = false
             setOnClickListener { onClick() }
-            (layoutParams as? LinearLayout.LayoutParams
-                ?: LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )).also {
-                it.marginStart = dp(4); it.marginEnd = dp(4); layoutParams = it
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).also {
+                it.marginStart = dp(4)
+                it.marginEnd = dp(4)
             }
         }
 
@@ -221,7 +226,7 @@ class OverlayService : Service() {
                     }
                     true
                 }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                MotionEvent.ACTION_UP -> {
                     if (!moved) {
                         toggle()
                     } else {
@@ -230,12 +235,18 @@ class OverlayService : Service() {
                     }
                     true
                 }
+                MotionEvent.ACTION_CANCEL -> {
+                    // 系统取消触摸序列：不切换、不吸附、不持久化，把手留在当前位置
+                    moved = false
+                    true
+                }
                 else -> false
             }
         }
     }
 
     private fun snapToNearestEdge(rawX: Float) {
+        // 把手在 x 方向始终贴边、仅纵向拖动；用手指 rawX 判断用户想吸附到哪一边，符合预期。
         currentEdge = OverlayPositionCalculator.nearestEdge(rawX.roundToInt(), screenWidth)
         params.gravity = Gravity.TOP or edgeGravity(currentEdge)
         params.x = 0
