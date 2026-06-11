@@ -71,7 +71,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
     val overlayEnabled by viewModel.overlayEnabled.collectAsState()
 
     // 对账：若开关为开但悬浮窗权限已被系统撤销，则回退持久化状态，避免开关与现实不符
-    LaunchedEffect(Unit) {
+    LaunchedEffect(overlayEnabled) {
         if (overlayEnabled && !PermissionHelper.canDrawOverlays(context)) {
             viewModel.setOverlayEnabled(false)
         }
