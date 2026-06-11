@@ -47,6 +47,9 @@ class RecorderService : Service() {
     private var timerJob: Job? = null
     private var elapsed = 0
     private var recording = false
+    private val notificationManager by lazy {
+        getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -66,9 +69,13 @@ class RecorderService : Service() {
     }
 
     private fun startRecording() {
+        ensureChannel()
+        startForeground(NOTIFICATION_ID, buildNotification(0))
+
         val uri = createPendingOutput()
         if (uri == null) {
             toast("无法创建录音文件")
+            stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
             return
         }
@@ -76,6 +83,7 @@ class RecorderService : Service() {
         if (descriptor == null) {
             toast("无法打开录音文件")
             deletePending(uri)
+            stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
             return
         }
@@ -87,7 +95,6 @@ class RecorderService : Service() {
             rec.setAudioEncodingBitRate(128_000)
             rec.setAudioSamplingRate(44_100)
             rec.setOutputFile(descriptor.fileDescriptor)
-            rec.setOnErrorListener { _, _, _ -> stopRecording(success = true) }
             rec.prepare()
             rec.start()
         } catch (e: Exception) {
@@ -95,6 +102,7 @@ class RecorderService : Service() {
             runCatching { descriptor.close() }
             deletePending(uri)
             toast("录音启动失败：${e.message}")
+            stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
             return
         }
@@ -104,9 +112,8 @@ class RecorderService : Service() {
         outputUri = uri
         recording = true
         elapsed = 0
+        rec.setOnErrorListener { _, _, _ -> stopRecording(success = true) }
 
-        ensureChannel()
-        startForeground(NOTIFICATION_ID, buildNotification(0))
         RecordingController.update(isRecording = true, elapsedSeconds = 0)
 
         timerJob = scope.launch {
@@ -175,9 +182,8 @@ class RecorderService : Service() {
         }
 
     private fun ensureChannel() {
-        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (nm.getNotificationChannel(CHANNEL_ID) == null) {
-            nm.createNotificationChannel(
+        if (notificationManager.getNotificationChannel(CHANNEL_ID) == null) {
+            notificationManager.createNotificationChannel(
                 NotificationChannel(CHANNEL_ID, "QuickSave 录音", NotificationManager.IMPORTANCE_LOW)
                     .apply { description = "录音进行中通知" }
             )
@@ -208,8 +214,7 @@ class RecorderService : Service() {
     }
 
     private fun notifyElapsed(seconds: Int) {
-        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        nm.notify(NOTIFICATION_ID, buildNotification(seconds))
+        notificationManager.notify(NOTIFICATION_ID, buildNotification(seconds))
     }
 
     private fun formatElapsed(seconds: Int): String {
