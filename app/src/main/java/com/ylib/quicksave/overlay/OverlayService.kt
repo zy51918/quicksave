@@ -1,0 +1,271 @@
+package com.ylib.quicksave.overlay
+
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
+import android.content.Context
+import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.os.IBinder
+import android.view.Gravity
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewConfiguration
+import android.view.WindowManager
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.Toast
+import androidx.core.app.NotificationCompat
+import com.ylib.quicksave.MainActivity
+import com.ylib.quicksave.app.QuickSaveApplication
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlin.math.abs
+import kotlin.math.roundToInt
+
+class OverlayService : Service() {
+
+    companion object {
+        const val ACTION_STOP = "com.ylib.quicksave.overlay.STOP"
+        private const val CHANNEL_ID = "quicksave_overlay_channel"
+        private const val NOTIFICATION_ID = 1002
+        private const val HANDLE_W_DP = 14
+        private const val HANDLE_H_DP = 54
+    }
+
+    private lateinit var windowManager: WindowManager
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    private var rootView: FrameLayout? = null
+    private var handleView: View? = null
+    private var panelView: LinearLayout? = null
+    private lateinit var params: WindowManager.LayoutParams
+
+    private var expanded = false
+    private var currentEdge = OverlayEdge.RIGHT
+
+    private val density get() = resources.displayMetrics.density
+    private fun dp(v: Int) = (v * density).roundToInt()
+    private val screenWidth get() = resources.displayMetrics.widthPixels
+    private val screenHeight get() = resources.displayMetrics.heightPixels
+
+    override fun onCreate() {
+        super.onCreate()
+        windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        createChannelAndForeground()
+        scope.launch {
+            val pos = overlayRepo().getPosition().first()
+            addOverlay(pos)
+        }
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_STOP) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        return START_STICKY
+    }
+
+    override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onDestroy() {
+        removeOverlay()
+        scope.cancel()
+        super.onDestroy()
+    }
+
+    private fun overlayRepo() =
+        (application as QuickSaveApplication).overlayRepository
+
+    // --- 通知 / 前台 ---
+    private fun createChannelAndForeground() {
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (nm.getNotificationChannel(CHANNEL_ID) == null) {
+            nm.createNotificationChannel(
+                NotificationChannel(CHANNEL_ID, "QuickSave 悬浮窗", NotificationManager.IMPORTANCE_LOW)
+                    .apply { description = "悬浮窗常驻通知" }
+            )
+        }
+        val openIntent = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_menu_view)
+            .setContentTitle("QuickSave 悬浮窗")
+            .setContentText("点击打开应用")
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .setSilent(true)
+            .setContentIntent(openIntent)
+            .build()
+        startForeground(NOTIFICATION_ID, notification)
+    }
+
+    // --- 叠加层视图 ---
+    private fun addOverlay(pos: OverlayPosition) {
+        currentEdge = pos.edge
+        val root = FrameLayout(this)
+        val handle = buildHandleView()
+        val panel = buildPanelView()
+        panel.visibility = View.GONE
+        root.addView(handle)
+        root.addView(panel)
+        rootView = root
+        handleView = handle
+        panelView = panel
+
+        params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            android.graphics.PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.TOP or edgeGravity(currentEdge)
+            x = 0
+            y = OverlayPositionCalculator.ratioToY(pos.yRatio, screenHeight)
+        }
+
+        attachHandleTouch(handle)
+        root.setOnTouchListener { _, event ->
+            if (expanded && event.action == MotionEvent.ACTION_OUTSIDE) {
+                collapse()
+                true
+            } else false
+        }
+        windowManager.addView(root, params)
+    }
+
+    private fun removeOverlay() {
+        rootView?.let { runCatching { windowManager.removeView(it) } }
+        rootView = null
+    }
+
+    private fun edgeGravity(edge: OverlayEdge) =
+        if (edge == OverlayEdge.LEFT) Gravity.START else Gravity.END
+
+    private fun buildHandleView(): View = View(this).apply {
+        layoutParams = FrameLayout.LayoutParams(dp(HANDLE_W_DP), dp(HANDLE_H_DP))
+        background = GradientDrawable().apply {
+            cornerRadius = dp(8).toFloat()
+            setColor(Color.argb(140, 80, 140, 255))
+        }
+    }
+
+    private fun buildPanelView(): LinearLayout = LinearLayout(this).apply {
+        orientation = LinearLayout.HORIZONTAL
+        setPadding(dp(8), dp(8), dp(8), dp(8))
+        background = GradientDrawable().apply {
+            cornerRadius = dp(14).toFloat()
+            setColor(Color.argb(245, 28, 34, 46))
+        }
+        addView(buildPanelButton("文字输入") {
+            Toast.makeText(this@OverlayService, "文字输入（待计划 B 实现）", Toast.LENGTH_SHORT).show()
+            collapse()
+        })
+        addView(buildPanelButton("录音") {
+            Toast.makeText(this@OverlayService, "录音（待计划 C 实现）", Toast.LENGTH_SHORT).show()
+            collapse()
+        })
+    }
+
+    private fun buildPanelButton(label: String, onClick: () -> Unit): Button =
+        Button(this).apply {
+            text = label
+            isAllCaps = false
+            setOnClickListener { onClick() }
+            (layoutParams as? LinearLayout.LayoutParams
+                ?: LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )).also {
+                it.marginStart = dp(4); it.marginEnd = dp(4); layoutParams = it
+            }
+        }
+
+    // --- 触摸：拖拽 vs 点击 ---
+    private fun attachHandleTouch(handle: View) {
+        val slop = ViewConfiguration.get(this).scaledTouchSlop
+        var downRawX = 0f
+        var downRawY = 0f
+        var downY = 0
+        var moved = false
+
+        handle.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    downRawX = event.rawX; downRawY = event.rawY
+                    downY = params.y; moved = false
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = event.rawX - downRawX
+                    val dy = event.rawY - downRawY
+                    if (!moved && (abs(dx) > slop || abs(dy) > slop)) moved = true
+                    if (moved) {
+                        val handleH = handle.height.takeIf { it > 0 } ?: dp(HANDLE_H_DP)
+                        params.y = OverlayPositionCalculator.clampY(
+                            (downY + dy).roundToInt(), handleH, screenHeight
+                        )
+                        windowManager.updateViewLayout(rootView, params)
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    if (!moved) {
+                        toggle()
+                    } else {
+                        snapToNearestEdge(event.rawX)
+                        persistPosition(handle)
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun snapToNearestEdge(rawX: Float) {
+        currentEdge = OverlayPositionCalculator.nearestEdge(rawX.roundToInt(), screenWidth)
+        params.gravity = Gravity.TOP or edgeGravity(currentEdge)
+        params.x = 0
+        windowManager.updateViewLayout(rootView, params)
+    }
+
+    private fun persistPosition(handle: View) {
+        val handleH = handle.height.takeIf { it > 0 } ?: dp(HANDLE_H_DP)
+        val clampedY = OverlayPositionCalculator.clampY(params.y, handleH, screenHeight)
+        val ratio = OverlayPositionCalculator.yToRatio(clampedY, screenHeight)
+        scope.launch { overlayRepo().setPosition(OverlayPosition(currentEdge, ratio)) }
+    }
+
+    // --- 展开 / 折叠 ---
+    private fun toggle() = if (expanded) collapse() else expand()
+
+    private fun expand() {
+        expanded = true
+        handleView?.visibility = View.GONE
+        panelView?.visibility = View.VISIBLE
+        params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+        runCatching { windowManager.updateViewLayout(rootView, params) }
+    }
+
+    private fun collapse() {
+        expanded = false
+        panelView?.visibility = View.GONE
+        handleView?.visibility = View.VISIBLE
+        params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        runCatching { windowManager.updateViewLayout(rootView, params) }
+    }
+}
