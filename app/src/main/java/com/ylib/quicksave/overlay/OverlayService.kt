@@ -17,7 +17,6 @@ import android.view.WindowManager
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.ylib.quicksave.MainActivity
 import com.ylib.quicksave.app.QuickSaveApplication
