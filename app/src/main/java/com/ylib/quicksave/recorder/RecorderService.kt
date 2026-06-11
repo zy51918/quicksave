@@ -56,14 +56,14 @@ class RecorderService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START -> if (!recording) startRecording()
-            ACTION_STOP -> stopRecording(success = true)
+            ACTION_STOP -> stopRecording()
             else -> {}
         }
         return START_NOT_STICKY
     }
 
     override fun onDestroy() {
-        if (recording) stopRecording(success = true)
+        if (recording) stopRecording()
         scope.cancel()
         super.onDestroy()
     }
@@ -112,7 +112,7 @@ class RecorderService : Service() {
         outputUri = uri
         recording = true
         elapsed = 0
-        rec.setOnErrorListener { _, _, _ -> stopRecording(success = true) }
+        rec.setOnErrorListener { _, _, _ -> stopRecording() }
 
         RecordingController.update(isRecording = true, elapsedSeconds = 0)
 
@@ -126,8 +126,9 @@ class RecorderService : Service() {
         }
     }
 
-    private fun stopRecording(success: Boolean) {
+    private fun stopRecording() {
         if (!recording) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
             return
         }
@@ -145,7 +146,7 @@ class RecorderService : Service() {
         outputUri = null
 
         RecordingController.reset()
-        toast(if (success) "录音已保存" else "录音已停止")
+        toast("录音已保存")
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
