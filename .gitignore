@@ -17,3 +17,7 @@ local.properties
 # Claude Code / superpowers plugin scratch space
 .superpowers/
 .kotlin/
+
+# Signing artifacts (never commit keystores)
+*.keystore
+*.jks
