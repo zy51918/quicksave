@@ -20,6 +20,8 @@ object OverlayPositionCalculator {
     }
 
     /** 屏高比例 → 像素 Y。 */
-    fun ratioToY(ratio: Float, screenHeight: Int): Int =
-        (ratio.coerceIn(0f, 1f) * screenHeight).toInt()
+    fun ratioToY(ratio: Float, screenHeight: Int): Int {
+        if (screenHeight <= 0) return 0
+        return (ratio.coerceIn(0f, 1f) * screenHeight).toInt()
+    }
 }

@@ -46,8 +46,22 @@ class OverlayPositionCalculatorTest {
     }
 
     @Test
-    fun `yToRatio clamps ratio into 0_1`() {
+    fun `yToRatio clamps above range to 1`() {
         assertEquals(1f, OverlayPositionCalculator.yToRatio(5000, 1920), 0.001f)
+    }
+
+    @Test
+    fun `yToRatio clamps below range to 0`() {
         assertEquals(0f, OverlayPositionCalculator.yToRatio(-100, 1920), 0.001f)
+    }
+
+    @Test
+    fun `yToRatio with zero screenHeight returns zero`() {
+        assertEquals(0f, OverlayPositionCalculator.yToRatio(100, 0), 0.001f)
+    }
+
+    @Test
+    fun `ratioToY with zero screenHeight returns zero`() {
+        assertEquals(0, OverlayPositionCalculator.ratioToY(0.5f, 0))
     }
 }
