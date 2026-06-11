@@ -1,10 +1,10 @@
 # QuickSave — 架构设计文档（ARCH）
 
-> 版本：1.2
-> 日期：2026-05-08
+> 版本：1.3
+> 日期：2026-06-11
 > 作者：开发工程师
 
-本文档描述 QuickSave Android 应用的项目级架构现状，反映已交付的 MVP（QS-0001）与分类标签（category-tag）合并后的代码组织。Feature 级架构变更详见 [`docs/ARCH_changelist.md`](ARCH_changelist.md) 与 `docs/features/<feature_id>/arch-<feature_name>.md`。
+本文档描述 QuickSave Android 应用的项目级架构现状，反映已交付的 MVP（QS-0001）、分类标签（category-tag）、手动输入（QS-0002）与全局悬浮窗（QS-0003，含文字输入 + 录音）合并后的代码组织。Feature 级架构变更详见 [`docs/ARCH_changelist.md`](ARCH_changelist.md) 与 `docs/features/<feature_id>/arch-<feature_name>.md`。
 
 ---
 
@@ -17,8 +17,10 @@
 | 导航 | `androidx.navigation.compose` |
 | 状态 | `StateFlow` + `MutableStateFlow`（UDF 单向数据流） |
 | 持久化 | Jetpack DataStore (Preferences) |
-| 文件 I/O | SAF (`ContentResolver` + 持久化 URI 权限) |
-| 后台 | `ForegroundService`（`specialUse / persistentNotification`） |
+| 文件 I/O | SAF (`ContentResolver` + 持久化 URI 权限)；录音经 MediaStore (`Music/QuickSave/`) |
+| 后台 | `ForegroundService`（剪贴板常驻 `specialUse`；录音 `microphone`）；悬浮窗服务为普通 started 服务 |
+| 悬浮窗 | `WindowManager` + `TYPE_APPLICATION_OVERLAY`（经典 Android View，非 Compose） |
+| 录音 | `MediaRecorder`（AAC/MPEG-4） |
 | 协程 | Kotlin Coroutines（Dispatchers.IO + Main） |
 | 拖拽排序 | `sh.calvin.reorderable` |
 | 测试 | JUnit 4 + Mockito-Kotlin + `kotlinx-coroutines-test` |
@@ -33,30 +35,35 @@
 ┌───────────────────────────── UI Layer ─────────────────────────────┐
 │  MainActivity + AppNavigation (NavHost)                            │
 │      ├── HomeScreen (Composable)                                   │
-│      └── SettingsScreen (Composable)                               │
+│      └── SettingsScreen (Composable，含悬浮窗总开关 + 权限流)        │
+│  InputActivity（透明，复用主页手动输入，悬浮窗拉起）                 │
+│  RecordPermissionActivity（透明，申请 RECORD_AUDIO）                │
 │  ui.theme.{Color, Theme, Type}                                     │
 ├─────────────────────────── ViewModel Layer ────────────────────────┤
-│  HomeViewModel : AndroidViewModel                                  │
-│      └─ StateFlow<HomeUiState>                                     │
+│  HomeViewModel : AndroidViewModel  └─ StateFlow<HomeUiState>       │
 │  SettingsViewModel : AndroidViewModel                              │
-│      └─ StateFlow<Uri?> targetFileUri                              │
-│      └─ StateFlow<List<String>> categories                         │
+│      └─ targetFileUri / categories / overlayEnabled               │
 ├─────────────────────────── Repository Layer ───────────────────────┤
-│  ClipRepository (interface)                                        │
-│      └─ ClipRepositoryImpl                                         │
+│  ClipRepository (interface) ── ClipRepositoryImpl                  │
+│  OverlayRepository (interface) ── OverlayRepositoryImpl            │
 ├──────────────────────────── Data Source Layer ─────────────────────┤
 │  AppDataStore   (interface)  ── AppDataStoreImpl  (DataStore)      │
 │  FileDataSource (interface)  ── SafFileDataSource (SAF)            │
 ├──────────────────────────── Service Layer ─────────────────────────┤
-│  ClipboardMonitorService : Service  (前台服务 / 常驻通知)           │
+│  ClipboardMonitorService : Service  (前台 / 常驻通知，保活进程)     │
+│  OverlayService : Service  (非前台；WindowManager 叠加层)          │
+│  RecorderService : Service  (microphone 前台；MediaRecorder)       │
+│  RecordingController (object)  StateFlow 桥接录音态（Recorder↔Overlay）│
 ├────────────────────────── Application Layer ───────────────────────┤
 │  QuickSaveApplication : Application  (DI 容器，by lazy 单例)       │
 ├────────────────────────────── Util ────────────────────────────────┤
-│  PermissionHelper（运行时 SDK 注入点，便于单测）                    │
+│  PermissionHelper（通知 / 悬浮窗 / 录音权限判断）                   │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
 依赖方向严格自上而下：UI → ViewModel → Repository → DataSource。Service 与 UI 并列，不互相依赖；二者皆通过 `QuickSaveApplication` 取得 Repository。
+
+**悬浮窗/录音保活与状态桥：** `OverlayService` 不再是前台服务——进程由常驻的 `ClipboardMonitorService`（前台）保活，故应用常驻通知只有一条。`RecorderService` 为 `microphone` 前台服务，仅录音期间存在（含计时通知）。`RecordingController` 是进程内单例 `StateFlow<RecordingUiState>`，由 `RecorderService` 写、`OverlayService` 订阅以更新把手/按钮录音态。
 
 ---
 
@@ -68,16 +75,24 @@ com.ylib.quicksave
 │   └── QuickSaveApplication.kt
 ├── data/
 │   ├── repository/       # 业务规则 + Result 包装
-│   │   ├── ClipRepository.kt
-│   │   └── ClipRepositoryImpl.kt
+│   │   ├── ClipRepository.kt / ClipRepositoryImpl.kt
+│   │   └── OverlayRepository.kt / OverlayRepositoryImpl.kt   # QS-0003
 │   └── source/           # 纯 I/O：DataStore + SAF
-│       ├── AppDataStore.kt
-│       ├── AppDataStoreImpl.kt
-│       ├── FileDataSource.kt
-│       └── SafFileDataSource.kt
+│       ├── AppDataStore.kt / AppDataStoreImpl.kt
+│       └── FileDataSource.kt / SafFileDataSource.kt
+├── overlay/              # QS-0003 悬浮窗
+│   ├── OverlayEdge.kt / OverlayPosition.kt
+│   ├── OverlayPositionCalculator.kt   # 纯逻辑，可单测
+│   └── OverlayService.kt              # WindowManager 叠加层（非前台）
+├── recorder/             # QS-0003 录音
+│   ├── RecordingUiState.kt / RecordingController.kt
+│   ├── RecordingFileNamer.kt          # 纯逻辑，可单测
+│   └── RecorderService.kt             # microphone 前台 + MediaRecorder
 ├── service/
 │   └── ClipboardMonitorService.kt
 ├── ui/
+│   ├── InputActivity.kt               # QS-0003 透明输入窗
+│   ├── RecordPermissionActivity.kt    # QS-0003 透明权限申请
 │   ├── screens/
 │   │   ├── HomeScreen.kt
 │   │   └── SettingsScreen.kt
@@ -135,8 +150,40 @@ interface ClipRepository {
 | `target_file_uri` | `String?` | `null` | 原始 URI 字符串 |
 | `categories` | `List<String>` | `emptyList()` | 换行符分隔；空时删除 key |
 | `selected_category` | `String?` | `null` | 原始字符串；null 时删除 key |
+| `overlay_enabled` | `Boolean` | `false` | 悬浮窗总开关（QS-0003） |
+| `overlay_edge` | `String` | `"RIGHT"` | 贴边方向 LEFT/RIGHT（QS-0003） |
+| `overlay_y_ratio` | `Float` | `0.4` | 把手纵向位置 = 屏高比例（QS-0003） |
 
 `selected_category` 不在 `categories` 列表时视为 `null`（在 ViewModel `combine` 阶段过滤，存储侧不修改）。
+
+### 4.4 OverlayRepository 接口（QS-0003）
+
+```kotlin
+interface OverlayRepository {
+    fun isEnabled(): Flow<Boolean>
+    suspend fun setEnabled(enabled: Boolean)
+    fun getPosition(): Flow<OverlayPosition>          // OverlayPosition(edge: OverlayEdge, yRatio: Float)
+    suspend fun setPosition(position: OverlayPosition)
+}
+```
+
+是悬浮窗 UI/服务与 DataStore 之间的类型化边界：把存储层的 `Pair<String, Float>` 映射为领域 `OverlayPosition`（经 `OverlayEdge.fromStorage` 容错解析）。`AppDataStore` 不反向依赖 `overlay` 包。
+
+### 4.5 RecordingController（跨服务录音态桥）
+
+```kotlin
+object RecordingController {                          // 进程内单例
+    val state: StateFlow<RecordingUiState>            // RecordingUiState(isRecording, elapsedSeconds)
+    fun update(isRecording: Boolean, elapsedSeconds: Int)
+    fun reset()
+}
+```
+
+`RecorderService` 每秒 `update`；`OverlayService` 在自身 `scope` 内 `collectLatest` 订阅，更新把手颜色/红点/录音按钮文本（固定宽 + tabular 数字，避免计时引起面板重排）。同进程共享，无跨进程开销。
+
+### 4.6 录音文件输出
+
+经 MediaStore 写入公共目录：`MediaStore.Audio` + `RELATIVE_PATH = "Music/QuickSave"`，`DISPLAY_NAME = QS_yyyyMMdd_HHmmss.m4a`，录制期间 `IS_PENDING=1`、停止后置 `0`。`MediaRecorder` 设 MIC / MPEG_4 / AAC / 128kbps / 44.1kHz，`ParcelFileDescriptor` 在录音期间保持打开、停止时关闭。
 
 ---
 
@@ -178,16 +225,19 @@ QuickSaveApplication.onCreate()
     ▼
 MainActivity.onCreate()
     │   1. requestPermissions(POST_NOTIFICATIONS) on TIRAMISU+
-    │   2. startForegroundService(ClipboardMonitorService)
-    │   3. setContent { QuickSaveTheme { AppNavigation(homeViewModel) } }
+    │   2. startForegroundService(ClipboardMonitorService)   // 常驻前台，保活进程
+    │   3. lifecycleScope: 若 overlayEnabled && canDrawOverlays → startService(OverlayService)
+    │   4. setContent { QuickSaveTheme { AppNavigation(homeViewModel) } }
     ▼
 ClipboardMonitorService.onCreate()
     │   1. createNotificationChannel("quicksave_channel", LOW)
-    │   2. startForeground(1001, buildNotification())
+    │   2. startForeground(1001, buildNotification())   // 应用唯一常驻通知
     ▼
 HomeScreen / SettingsScreen 通过 viewModels()
-    └── ViewModel 通过 (app as QuickSaveApplication).clipRepository 取依赖
+    └── ViewModel 通过 (app as QuickSaveApplication).{clipRepository, overlayRepository} 取依赖
 ```
+
+设置页总开关开启 → 检查 `canDrawOverlays`，未授权跳系统授权页；授予后 `setEnabled(true)` + `startService(OverlayService)`。关闭 → `setEnabled(false)` + `startService(OverlayService, ACTION_STOP)`。录音由 `OverlayService.onRecordClicked` 经 `startForegroundService(RecorderService, ACTION_START)` 触发（进程因剪贴板前台服务处于 FGS/可见级别，允许启动 mic 前台服务）；无录音权限时拉起 `RecordPermissionActivity`。
 
 DI 容器仅在 `QuickSaveApplication` 中：
 
@@ -195,6 +245,7 @@ DI 容器仅在 `QuickSaveApplication` 中：
 val dataStore: AppDataStore by lazy { AppDataStoreImpl(this) }
 val fileDataSource: FileDataSource by lazy { SafFileDataSource(contentResolver) }
 val clipRepository: ClipRepository by lazy { ClipRepositoryImpl(dataStore, fileDataSource) }
+val overlayRepository: OverlayRepository by lazy { OverlayRepositoryImpl(dataStore) }   // QS-0003
 ```
 
 ---
@@ -204,11 +255,16 @@ val clipRepository: ClipRepository by lazy { ClipRepositoryImpl(dataStore, fileD
 | 权限 | 用途 | 申请时机 |
 |------|------|---------|
 | `FOREGROUND_SERVICE` | 启动前台服务（必需） | Manifest 静态声明 |
-| `FOREGROUND_SERVICE_SPECIAL_USE` | Android 14+ 必需的子类型 | Manifest，对应 `<service> property persistentNotification` |
+| `FOREGROUND_SERVICE_SPECIAL_USE` | 剪贴板常驻服务子类型 | Manifest，对应 `ClipboardMonitorService` 的 `persistentNotification` |
+| `FOREGROUND_SERVICE_MICROPHONE` | 录音前台服务子类型（QS-0003） | Manifest，对应 `RecorderService` |
 | `POST_NOTIFICATIONS` | Android 13+ 通知权限 | `MainActivity.onCreate()` 运行时申请，未授权时通知静默失败但不影响主功能 |
-| 文件读写 | 通过 SAF 持久化 URI 权限，无需声明 `READ/WRITE_EXTERNAL_STORAGE` | 选文件时 `takePersistableUriPermission()` |
+| `SYSTEM_ALERT_WINDOW` | 悬浮窗绘制（QS-0003） | 开总开关时按需申请（`Settings.ACTION_MANAGE_OVERLAY_PERMISSION`） |
+| `RECORD_AUDIO` | 录音（QS-0003） | 首次点【录音】时经 `RecordPermissionActivity` 运行时申请 |
+| 文件读写 | 通过 SAF 持久化 URI 权限，无需声明 `READ/WRITE_EXTERNAL_STORAGE`；录音经 MediaStore 写公共目录，无需存储权限 | 选文件时 `takePersistableUriPermission()` |
 
-`PermissionHelper` 提供运行时 SDK 注入点 (`sdkIntProvider`)，便于单元测试不同 API 等级行为。
+`PermissionHelper` 提供 `hasNotificationPermission` / `canDrawOverlays` / `hasRecordAudioPermission` 与运行时 SDK 注入点 (`sdkIntProvider`)，便于单元测试不同 API 等级行为。
+
+**注：** `OverlayService` 不持有前台服务类型——它是普通 started 服务，借常驻的 `ClipboardMonitorService` 保活进程，从而把应用常驻通知收成一条。持有 `SYSTEM_ALERT_WINDOW` 时可从其后台拉起透明 Activity（`InputActivity` / `RecordPermissionActivity`，`FLAG_ACTIVITY_NEW_TASK`）。
 
 ---
 
@@ -231,5 +287,6 @@ val clipRepository: ClipRepository by lazy { ClipRepositoryImpl(dataStore, fileD
 |------------|------|---------|------|
 | `QS-0001` | MVP — 项目骨架（分层、Repository、SAF、前台 Service、Compose 导航） | 首次建立 | [features/QS-0001/arch-mvp.md](features/QS-0001/arch-mvp.md) |
 | `QS-0002` | 手动输入保存（v1.2，已交付） | **无** — 仅 UI 层增量（HomeUiState 字段拆分、HomeScreen 抽出 3 个 Composable）；Repository / DataStore / Service / 跨模块协议全部不变 | — |
+| `QS-0003` | 全局悬浮窗 + 文字输入 + 录音（v1.3，已交付） | **有** — 新增 `overlay/` 与 `recorder/` 包、`OverlayService`（非前台）/`RecorderService`（mic 前台）/`RecordingController`、`OverlayRepository`、`InputActivity`/`RecordPermissionActivity`；DataStore 增 3 键；新增 `SYSTEM_ALERT_WINDOW`/`RECORD_AUDIO`/`FOREGROUND_SERVICE_MICROPHONE` 权限；常驻通知由两条收成一条 | [features/QS-0003/design-floating-window.md](features/QS-0003/design-floating-window.md) |
 
-> 后续 feature 若引入架构变更（新增模块、修改跨层协议），需在本表追加并新建 `arch-<feature_name>.md`。仅做实现变更（不动接口）的 feature 在表中标注「无」即可，不需要单独的 arch 文档。
+> 后续 feature 若引入架构变更（新增模块、修改跨层协议），需在本表追加并新建 `arch-<feature_name>.md`（QS-0003 以 brainstorming 流程的 `design-floating-window.md` 承载架构说明）。仅做实现变更（不动接口）的 feature 在表中标注「无」即可，不需要单独的 arch 文档。
