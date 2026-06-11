@@ -45,7 +45,7 @@ class ClipboardMonitorService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_menu_save)
             .setContentTitle("QuickSave")
-            .setContentText("点击打开应用保存剪切板内容")
+            .setContentText("点击打开应用")
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .setSilent(true)
