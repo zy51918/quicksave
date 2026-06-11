@@ -13,14 +13,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.ylib.quicksave.app.QuickSaveApplication
+import com.ylib.quicksave.overlay.OverlayService
 import com.ylib.quicksave.service.ClipboardMonitorService
 import com.ylib.quicksave.ui.screens.HomeScreen
 import com.ylib.quicksave.ui.screens.SettingsScreen
 import com.ylib.quicksave.ui.theme.QuickSaveTheme
 import com.ylib.quicksave.ui.viewmodel.HomeViewModel
+import com.ylib.quicksave.util.PermissionHelper
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -33,6 +39,16 @@ class MainActivity : ComponentActivity() {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 0)
         }
         ContextCompat.startForegroundService(this, Intent(this, ClipboardMonitorService::class.java))
+        lifecycleScope.launch {
+            val app = application as QuickSaveApplication
+            if (app.overlayRepository.isEnabled().first() &&
+                PermissionHelper.canDrawOverlays(this@MainActivity)
+            ) {
+                ContextCompat.startForegroundService(
+                    this@MainActivity, Intent(this@MainActivity, OverlayService::class.java)
+                )
+            }
+        }
         setContent {
             QuickSaveTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { _ ->

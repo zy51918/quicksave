@@ -42,6 +42,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,8 +52,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ylib.quicksave.overlay.OverlayService
 import com.ylib.quicksave.ui.viewmodel.SettingsViewModel
@@ -69,6 +70,13 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
 
     val overlayEnabled by viewModel.overlayEnabled.collectAsState()
 
+    // 对账：若开关为开但悬浮窗权限已被系统撤销，则回退持久化状态，避免开关与现实不符
+    LaunchedEffect(Unit) {
+        if (overlayEnabled && !PermissionHelper.canDrawOverlays(context)) {
+            viewModel.setOverlayEnabled(false)
+        }
+    }
+
     // 申请悬浮窗权限后回到本页：若已授权则开启并启动服务
     val overlayPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -81,7 +89,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
         }
     }
 
-    fun onToggleOverlay(enable: Boolean) {
+    val onToggleOverlay: (Boolean) -> Unit = { enable ->
         if (enable) {
             if (PermissionHelper.canDrawOverlays(context)) {
                 viewModel.setOverlayEnabled(true)
