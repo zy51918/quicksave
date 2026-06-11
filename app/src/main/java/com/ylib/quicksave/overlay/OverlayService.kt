@@ -175,13 +175,19 @@ class OverlayService : Service() {
             setColor(Color.argb(245, 28, 34, 46))
         }
         addView(buildPanelButton("文字输入") {
-            Toast.makeText(this@OverlayService, "文字输入（待计划 B 实现）", Toast.LENGTH_SHORT).show()
             collapse()
+            launchInputActivity()
         })
         addView(buildPanelButton("录音") {
             Toast.makeText(this@OverlayService, "录音（待计划 C 实现）", Toast.LENGTH_SHORT).show()
             collapse()
         })
+    }
+
+    private fun launchInputActivity() {
+        val intent = Intent(this, com.ylib.quicksave.ui.InputActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
     }
 
     private fun buildPanelButton(label: String, onClick: () -> Unit): Button =
