@@ -38,6 +38,12 @@
             android:theme="@style/Theme.QuickSave.Transparent"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".ui.RecordPermissionActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.QuickSave.Transparent" />
+
         <service
             android:name=".service.ClipboardMonitorService"
             android:exported="false"
