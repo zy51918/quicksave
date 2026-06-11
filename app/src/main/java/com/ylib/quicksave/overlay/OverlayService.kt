@@ -25,8 +25,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import com.ylib.quicksave.recorder.RecorderService
+import com.ylib.quicksave.recorder.RecordingController
+import com.ylib.quicksave.ui.RecordPermissionActivity
+import com.ylib.quicksave.util.PermissionHelper
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -46,6 +51,8 @@ class OverlayService : Service() {
     private var rootView: FrameLayout? = null
     private var handleView: View? = null
     private var panelView: LinearLayout? = null
+    private var recordButton: Button? = null
+    private var redDot: View? = null
     private lateinit var params: WindowManager.LayoutParams
 
     private var expanded = false
@@ -125,6 +132,20 @@ class OverlayService : Service() {
         panel.visibility = View.GONE
         root.addView(handle)
         root.addView(panel)
+        val dot = View(this).apply {
+            layoutParams = FrameLayout.LayoutParams(dp(8), dp(8)).apply {
+                gravity = Gravity.TOP or Gravity.END
+                topMargin = dp(4)
+                marginEnd = dp(3)
+            }
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.RED)
+            }
+            visibility = View.GONE
+        }
+        root.addView(dot)
+        redDot = dot
         rootView = root
         handleView = handle
         panelView = panel
@@ -149,6 +170,7 @@ class OverlayService : Service() {
             } else false
         }
         windowManager.addView(root, params)
+        observeRecordingState()
     }
 
     private fun removeOverlay() {
@@ -178,10 +200,12 @@ class OverlayService : Service() {
             collapse()
             launchInputActivity()
         })
-        addView(buildPanelButton("录音") {
-            Toast.makeText(this@OverlayService, "录音（待计划 C 实现）", Toast.LENGTH_SHORT).show()
+        val recBtn = buildPanelButton("录音") {
             collapse()
-        })
+            onRecordClicked()
+        }
+        recordButton = recBtn
+        addView(recBtn)
     }
 
     private fun launchInputActivity() {
@@ -284,5 +308,45 @@ class OverlayService : Service() {
         handleView?.visibility = View.VISIBLE
         params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
         runCatching { windowManager.updateViewLayout(rootView, params) }
+    }
+
+    private fun onRecordClicked() {
+        if (RecordingController.state.value.isRecording) {
+            startService(
+                Intent(this, RecorderService::class.java).apply { action = RecorderService.ACTION_STOP }
+            )
+        } else if (PermissionHelper.hasRecordAudioPermission(this)) {
+            androidx.core.content.ContextCompat.startForegroundService(
+                this,
+                Intent(this, RecorderService::class.java).apply { action = RecorderService.ACTION_START }
+            )
+        } else {
+            startActivity(
+                Intent(this, RecordPermissionActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        }
+    }
+
+    private fun observeRecordingState() {
+        scope.launch {
+            RecordingController.state.collectLatest { st ->
+                applyRecordingVisual(st.isRecording, st.elapsedSeconds)
+            }
+        }
+    }
+
+    private fun applyRecordingVisual(isRecording: Boolean, seconds: Int) {
+        (handleView?.background as? GradientDrawable)?.setColor(
+            if (isRecording) Color.argb(170, 255, 70, 70) else Color.argb(140, 80, 140, 255)
+        )
+        redDot?.visibility = if (isRecording) View.VISIBLE else View.GONE
+        recordButton?.text = if (isRecording) "录音中 ${formatElapsed(seconds)}" else "录音"
+    }
+
+    private fun formatElapsed(seconds: Int): String {
+        val m = seconds / 60
+        val s = seconds % 60
+        return "%02d:%02d".format(m, s)
     }
 }
