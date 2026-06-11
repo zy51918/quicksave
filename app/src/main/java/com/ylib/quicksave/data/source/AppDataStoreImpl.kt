@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -17,6 +19,9 @@ class AppDataStoreImpl(private val context: Context) : AppDataStore {
         private val TARGET_FILE_URI = stringPreferencesKey("target_file_uri")
         private val CATEGORIES = stringPreferencesKey("categories")
         private val SELECTED_CATEGORY = stringPreferencesKey("selected_category")
+        private val OVERLAY_ENABLED = booleanPreferencesKey("overlay_enabled")
+        private val OVERLAY_EDGE = stringPreferencesKey("overlay_edge")
+        private val OVERLAY_Y_RATIO = floatPreferencesKey("overlay_y_ratio")
     }
 
     override suspend fun saveTargetFileUri(uri: String) {
@@ -48,4 +53,23 @@ class AppDataStoreImpl(private val context: Context) : AppDataStore {
 
     override fun getSelectedCategory(): Flow<String?> =
         context.dataStore.data.map { it[SELECTED_CATEGORY] }
+
+    override suspend fun saveOverlayEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[OVERLAY_ENABLED] = enabled }
+    }
+
+    override fun getOverlayEnabled(): Flow<Boolean> =
+        context.dataStore.data.map { it[OVERLAY_ENABLED] ?: false }
+
+    override suspend fun saveOverlayPosition(edge: String, yRatio: Float) {
+        context.dataStore.edit {
+            it[OVERLAY_EDGE] = edge
+            it[OVERLAY_Y_RATIO] = yRatio
+        }
+    }
+
+    override fun getOverlayPosition(): Flow<Pair<String, Float>> =
+        context.dataStore.data.map {
+            (it[OVERLAY_EDGE] ?: "RIGHT") to (it[OVERLAY_Y_RATIO] ?: 0.4f)
+        }
 }

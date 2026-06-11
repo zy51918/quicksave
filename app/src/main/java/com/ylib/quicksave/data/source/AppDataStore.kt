@@ -9,4 +9,8 @@ interface AppDataStore {
     fun getCategories(): Flow<List<String>>
     suspend fun saveSelectedCategory(category: String?)
     fun getSelectedCategory(): Flow<String?>
+    suspend fun saveOverlayEnabled(enabled: Boolean)
+    fun getOverlayEnabled(): Flow<Boolean>
+    suspend fun saveOverlayPosition(edge: String, yRatio: Float)
+    fun getOverlayPosition(): Flow<Pair<String, Float>>
 }
