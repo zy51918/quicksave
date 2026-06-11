@@ -21,4 +21,11 @@ object PermissionHelper {
     /** 是否已授予悬浮窗（SYSTEM_ALERT_WINDOW）权限。 */
     fun canDrawOverlays(context: Context): Boolean =
         android.provider.Settings.canDrawOverlays(context)
+
+    /** 是否已授予录音（RECORD_AUDIO）权限。 */
+    fun hasRecordAudioPermission(context: Context): Boolean =
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
 }
