@@ -29,6 +29,13 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.InputActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.QuickSave.Transparent"
+            android:windowSoftInputMode="adjustResize" />
+
         <service
             android:name=".service.ClipboardMonitorService"
             android:exported="false"
