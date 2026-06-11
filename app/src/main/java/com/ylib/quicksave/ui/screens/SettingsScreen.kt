@@ -1,6 +1,8 @@
 package com.ylib.quicksave.ui.screens
 
 import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateDpAsState
@@ -31,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -49,8 +52,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import com.ylib.quicksave.overlay.OverlayService
 import com.ylib.quicksave.ui.viewmodel.SettingsViewModel
+import com.ylib.quicksave.util.PermissionHelper
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -60,6 +66,45 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
     val targetUri by viewModel.targetFileUri.collectAsState()
     val categories by viewModel.categories.collectAsState()
     val context = LocalContext.current
+
+    val overlayEnabled by viewModel.overlayEnabled.collectAsState()
+
+    // 申请悬浮窗权限后回到本页：若已授权则开启并启动服务
+    val overlayPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (PermissionHelper.canDrawOverlays(context)) {
+            viewModel.setOverlayEnabled(true)
+            ContextCompat.startForegroundService(
+                context, Intent(context, OverlayService::class.java)
+            )
+        }
+    }
+
+    fun onToggleOverlay(enable: Boolean) {
+        if (enable) {
+            if (PermissionHelper.canDrawOverlays(context)) {
+                viewModel.setOverlayEnabled(true)
+                ContextCompat.startForegroundService(
+                    context, Intent(context, OverlayService::class.java)
+                )
+            } else {
+                overlayPermissionLauncher.launch(
+                    Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:${context.packageName}")
+                    )
+                )
+            }
+        } else {
+            viewModel.setOverlayEnabled(false)
+            context.startService(
+                Intent(context, OverlayService::class.java).apply {
+                    action = OverlayService.ACTION_STOP
+                }
+            )
+        }
+    }
 
     var showAddCategoryDialog by remember { mutableStateOf(false) }
     var renamingCategory by remember { mutableStateOf<String?>(null) }
@@ -199,6 +244,34 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
                 "示例：[2026-04-20 14:23:05] 这是保存的内容",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.outline
+            )
+
+            // 全局悬浮窗区块
+            Spacer(Modifier.height(24.dp))
+            Text(
+                "全局悬浮窗",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "启用全局悬浮窗",
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Switch(
+                    checked = overlayEnabled,
+                    onCheckedChange = { onToggleOverlay(it) }
+                )
+            }
+            Text(
+                "开启后将在所有应用之上显示一个贴边悬浮窗，点击展开快捷操作。需要授予\"显示在其他应用上层\"权限。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             // 分类管理区块
