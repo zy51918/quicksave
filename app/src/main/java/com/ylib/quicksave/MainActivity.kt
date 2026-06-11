@@ -44,8 +44,8 @@ class MainActivity : ComponentActivity() {
             if (app.overlayRepository.isEnabled().first() &&
                 PermissionHelper.canDrawOverlays(this@MainActivity)
             ) {
-                ContextCompat.startForegroundService(
-                    this@MainActivity, Intent(this@MainActivity, OverlayService::class.java)
+                this@MainActivity.startService(
+                    Intent(this@MainActivity, OverlayService::class.java)
                 )
             }
         }

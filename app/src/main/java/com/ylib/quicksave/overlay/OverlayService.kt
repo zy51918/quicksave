@@ -1,8 +1,5 @@
 package com.ylib.quicksave.overlay
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -17,8 +14,6 @@ import android.view.WindowManager
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import androidx.core.app.NotificationCompat
-import com.ylib.quicksave.MainActivity
 import com.ylib.quicksave.app.QuickSaveApplication
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,8 +33,6 @@ class OverlayService : Service() {
 
     companion object {
         const val ACTION_STOP = "com.ylib.quicksave.overlay.STOP"
-        private const val CHANNEL_ID = "quicksave_overlay_channel"
-        private const val NOTIFICATION_ID = 1002
         private const val HANDLE_W_DP = 14
         private const val HANDLE_H_DP = 54
     }
@@ -65,8 +58,6 @@ class OverlayService : Service() {
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        ensureChannel()
-        startForeground(NOTIFICATION_ID, buildNotification())
         scope.launch {
             val pos = overlayRepo().getPosition().first()
             addOverlay(pos)
@@ -78,7 +69,6 @@ class OverlayService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
-        startForeground(NOTIFICATION_ID, buildNotification())
         return START_STICKY
     }
 
@@ -92,34 +82,6 @@ class OverlayService : Service() {
 
     private fun overlayRepo() =
         (application as QuickSaveApplication).overlayRepository
-
-    // --- 通知 / 前台 ---
-    private fun ensureChannel() {
-        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (nm.getNotificationChannel(CHANNEL_ID) == null) {
-            nm.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, "QuickSave 悬浮窗", NotificationManager.IMPORTANCE_LOW)
-                    .apply { description = "悬浮窗常驻通知" }
-            )
-        }
-    }
-
-    private fun buildNotification(): android.app.Notification {
-        val openIntent = PendingIntent.getActivity(
-            this, 1,
-            Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_menu_view)
-            .setContentTitle("QuickSave 悬浮窗")
-            .setContentText("点击打开应用")
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOngoing(true)
-            .setSilent(true)
-            .setContentIntent(openIntent)
-            .build()
-    }
 
     // --- 叠加层视图 ---
     private fun addOverlay(pos: OverlayPosition) {

@@ -52,7 +52,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ylib.quicksave.overlay.OverlayService
@@ -83,9 +82,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
     ) {
         if (PermissionHelper.canDrawOverlays(context)) {
             viewModel.setOverlayEnabled(true)
-            ContextCompat.startForegroundService(
-                context, Intent(context, OverlayService::class.java)
-            )
+            context.startService(Intent(context, OverlayService::class.java))
         }
     }
 
@@ -93,9 +90,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
         if (enable) {
             if (PermissionHelper.canDrawOverlays(context)) {
                 viewModel.setOverlayEnabled(true)
-                ContextCompat.startForegroundService(
-                    context, Intent(context, OverlayService::class.java)
-                )
+                context.startService(Intent(context, OverlayService::class.java))
             } else {
                 overlayPermissionLauncher.launch(
                     Intent(

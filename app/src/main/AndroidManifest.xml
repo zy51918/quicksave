@@ -55,12 +55,7 @@
 
         <service
             android:name=".overlay.OverlayService"
-            android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="floatingWindow" />
-        </service>
+            android:exported="false" />
 
         <service
             android:name=".recorder.RecorderService"
