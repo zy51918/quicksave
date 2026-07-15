@@ -1,11 +1,17 @@
 package com.ylib.quicksave.overlay
 
 import android.app.Service
+import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.IBinder
+import android.util.DisplayMetrics
+import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -35,6 +41,16 @@ class OverlayService : Service() {
         const val ACTION_STOP = "com.ylib.quicksave.overlay.STOP"
         private const val HANDLE_W_DP = 14
         private const val HANDLE_H_DP = 54
+        private const val TAG = "OverlayService"
+        // 悬浮窗必须绕过系统栏 inset-fit，否则 gravity=TOP|LEFT, x=0 的窗口会被系统按
+        // fitTypes=STATUS_BARS/NAVIGATION_BARS 收进"安全区"里定位。安全区的偏移量在竖屏
+        // 只体现为顶部 inset，但横屏时状态栏/摄像头挖孔仍锚定在设备物理顶边，旋转后会变成
+        // 左侧 inset——导致贴左边的悬浮窗每次旋转后 x 从 0 漂移到 ~161px，看起来"没贴边"。
+        // LAYOUT_IN_SCREEN + LAYOUT_NO_LIMITS 让窗口坐标系始终是整块屏幕的原始像素范围，
+        // 与 overlayBounds 用的 currentWindowMetrics 口径一致，两个方向都不再漂移。
+        private const val BASE_FLAGS = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
     }
 
     private lateinit var windowManager: WindowManager
@@ -49,17 +65,49 @@ class OverlayService : Service() {
 
     private var expanded = false
     private var currentEdge = OverlayEdge.RIGHT
+    // 防止 Service.onConfigurationChanged 与 ComponentCallbacks2 两条路径同时触发导致重复 remove+add
+    @Volatile private var relayouting = false
+
+    // Service.onConfigurationChanged 对屏幕旋转投递不可靠（尤其 targetSdk 30+），
+    // 注册进程级 ComponentCallbacks2 作为更稳的补充监听，确保旋转后能重定位悬浮窗。
+    private val configCallback = object : ComponentCallbacks2 {
+        override fun onConfigurationChanged(newConfig: Configuration) {
+            this@OverlayService.onConfigurationChanged(newConfig)
+        }
+        override fun onLowMemory() {}
+        override fun onTrimMemory(level: Int) {}
+    }
 
     private val density get() = resources.displayMetrics.density
     private fun dp(v: Int) = (v * density).roundToInt()
-    private val screenWidth get() = resources.displayMetrics.widthPixels
-    private val screenHeight get() = resources.displayMetrics.heightPixels
+
+    /**
+     * 通过 WindowManager 实时获取 overlay 窗口可用区域尺寸，避免 resources.displayMetrics
+     * 在 Service.onConfigurationChanged 被调用时尚未刷新成新方向的问题。
+     */
+    private val overlayBounds: Rect
+        get() {
+            // 优先用平台 WindowMetrics（API 30+），反映系统栏与 cutout 后的真实可用区域
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                return windowManager.currentWindowMetrics.bounds
+            }
+            // fallback：直接量 Display 实时像素，比 resources.displayMetrics 更贴近当下方向
+            val dm = DisplayMetrics()
+            @Suppress("DEPRECATION")
+            windowManager.defaultDisplay.getRealMetrics(dm)
+            return Rect(0, 0, dm.widthPixels, dm.heightPixels)
+        }
+
+    private val screenWidth get() = overlayBounds.width()
+    private val screenHeight get() = overlayBounds.height()
 
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        registerComponentCallbacks(configCallback)
         scope.launch {
             val pos = overlayRepo().getPosition().first()
+            Log.d(TAG, "onCreate: initial position edge=${pos.edge}, yRatio=${pos.yRatio}")
             addOverlay(pos)
         }
     }
@@ -74,7 +122,56 @@ class OverlayService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    /**
+     * 旋转屏幕时 Service 不会重建，WindowManager 中悬浮窗的 params.y 仍是旧屏高的像素值，
+     * 会导致按钮被定位到屏幕外/没贴边。这里移除并按新屏高重新添加窗口，
+     * 彻底重算布局区域（比 updateViewLayout 更稳，规避某些 WindowManager 实现缓存旧布局）。
+     * 同时被 registerComponentCallbacks 的回调复用，弥补 Service.onConfigurationChanged 投递不可靠。
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        Log.d(TAG, "onConfigurationChanged: orientation=${newConfig.orientation}, relayouting=$relayouting, rootView=${rootView != null}")
+        val root = rootView ?: run {
+            Log.w(TAG, "onConfigurationChanged: rootView is null, skip relayout")
+            return
+        }
+        if (relayouting) {
+            Log.d(TAG, "onConfigurationChanged: already relayouting, skip (duplicate callback from Service+ComponentCallbacks2)")
+            return
+        }
+        relayouting = true
+        // 横竖屏切换时展开态的面板布局已不适用，先折叠回把手
+        if (expanded) collapse()
+        try {
+            windowManager.removeView(root)
+            Log.d(TAG, "onConfigurationChanged: removeView OK")
+        } catch (e: Exception) {
+            Log.e(TAG, "onConfigurationChanged: removeView FAILED", e)
+        }
+        scope.launch {
+            try {
+                val pos = overlayRepo().getPosition().first()
+                val newScreenHeight = screenHeight
+                currentEdge = pos.edge
+                params.gravity = Gravity.TOP or edgeGravity(currentEdge)
+                params.x = 0
+                params.y = OverlayPositionCalculator.ratioToY(pos.yRatio, newScreenHeight)
+                Log.d(TAG, "onConfigurationChanged: relayout with edge=$currentEdge, yRatio=${pos.yRatio}, " +
+                    "newScreenHeight=$newScreenHeight, params.y=${params.y}")
+                try {
+                    windowManager.addView(root, params)
+                    Log.d(TAG, "onConfigurationChanged: addView OK")
+                } catch (e: Exception) {
+                    Log.e(TAG, "onConfigurationChanged: addView FAILED, overlay is now GONE from screen", e)
+                }
+            } finally {
+                relayouting = false
+            }
+        }
+    }
+
     override fun onDestroy() {
+        unregisterComponentCallbacks(configCallback)
         removeOverlay()
         scope.cancel()
         super.onDestroy()
@@ -115,7 +212,7 @@ class OverlayService : Service() {
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            BASE_FLAGS,
             android.graphics.PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or edgeGravity(currentEdge)
@@ -130,6 +227,7 @@ class OverlayService : Service() {
                 true
             } else false
         }
+        Log.d(TAG, "addOverlay: edge=$currentEdge, y=${params.y}, screenWidth=$screenWidth, screenHeight=$screenHeight")
         windowManager.addView(root, params)
         observeRecordingState()
     }
@@ -140,7 +238,9 @@ class OverlayService : Service() {
     }
 
     private fun edgeGravity(edge: OverlayEdge) =
-        if (edge == OverlayEdge.LEFT) Gravity.START else Gravity.END
+        // 用绝对 LEFT/RIGHT 而非 START/END，避免 RTL（supportsRtl=true）在横屏下
+        // 把贴边方向映射反，导致按钮看起来“没贴边”。
+        if (edge == OverlayEdge.LEFT) Gravity.LEFT else Gravity.RIGHT
 
     private fun buildHandleView(): View = View(this).apply {
         layoutParams = FrameLayout.LayoutParams(dp(HANDLE_W_DP), dp(HANDLE_H_DP))
@@ -268,17 +368,18 @@ class OverlayService : Service() {
         expanded = true
         handleView?.visibility = View.GONE
         panelView?.visibility = View.VISIBLE
-        params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+        params.flags = BASE_FLAGS or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
         runCatching { windowManager.updateViewLayout(rootView, params) }
+            .onFailure { Log.e(TAG, "expand: updateViewLayout FAILED", it) }
     }
 
     private fun collapse() {
         expanded = false
         panelView?.visibility = View.GONE
         handleView?.visibility = View.VISIBLE
-        params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        params.flags = BASE_FLAGS
         runCatching { windowManager.updateViewLayout(rootView, params) }
+            .onFailure { Log.e(TAG, "collapse: updateViewLayout FAILED", it) }
     }
 
     private fun onRecordClicked() {

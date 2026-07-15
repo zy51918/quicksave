@@ -64,4 +64,22 @@ class OverlayPositionCalculatorTest {
     fun `ratioToY with zero screenHeight returns zero`() {
         assertEquals(0, OverlayPositionCalculator.ratioToY(0.5f, 0))
     }
+
+    @Test
+    fun `ratioToY restores equivalent position across orientation change`() {
+        // 竖屏高 2400px，把手顶部 y=1200，记录为高度比例 0.5
+        val ratio = OverlayPositionCalculator.yToRatio(1200, 2400)
+        // 旋转横屏后可视高度变为 1080px，按同一比例换算应回到等比例位置
+        assertEquals(540, OverlayPositionCalculator.ratioToY(ratio, 1080))
+    }
+
+    @Test
+    fun `ratioToY and yToRatio round-trip preserves ratio within new bounds`() {
+        // 任意像素位置 → 比例 → 新屏高像素，比例应保持一致
+        val ratio = OverlayPositionCalculator.yToRatio(800, 1920)
+        val restoredRatio = OverlayPositionCalculator.yToRatio(
+            OverlayPositionCalculator.ratioToY(ratio, 1080), 1080
+        )
+        assertEquals(ratio, restoredRatio, 0.01f)
+    }
 }
