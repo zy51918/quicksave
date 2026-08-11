@@ -1,5 +1,7 @@
 # UI Changelist
 
+## [2026-08-11] [UI 打磨] 项目级 UI 升 v1.4：主页新增 surface 色 TopAppBar（标题 + 设置图标按钮），设置入口从滚动区右下角上移到顶栏 action；设置页 TopAppBar 从 Primary 填充改为 surface 色，抽出 SectionHeader 统一三个分区标题（onSurface 色）；手动输入卡补 1dp Outline 描边（落地 §3.1 既定规格）；拖拽手柄从文本字符 ⠿ 改为自绘 2×3 圆点 DragHandle（Canvas，零体积）；移除所有「保存到文件 ▶」「选择保存文件 ▶」装饰性箭头；间距/圆角集中为 ui/theme/DimTokens.kt（Dim + AppShapes），Card 12dp 圆角显式注入 Theme；MainActivity 移除多余 outer Scaffold（消既有 lint error）。
+
 ## [2026-06-11] [QS-0003] 全局悬浮窗合入 main；项目级 UI 升 v1.3：§3.2 增设置页「全局悬浮窗」开关区块，新增 §3.3 悬浮窗（三态：贴边把手/展开面板/录音中 + 透明输入窗 InputActivity）；§四 通知正文改"点击打开应用"并新增录音通知（§4.2）、说明常驻通知收成一条；§六 增 §6.1 悬浮窗 Toast 规范；§十 索引追加 QS-0003。
 
 ## [2026-06-11] [QS-0003][打磨] 常驻通知文案改"点击打开应用"（不再只提剪切板）；录音按钮固定宽 + 等宽数字（tnum），计时更新不引起面板抖动。
