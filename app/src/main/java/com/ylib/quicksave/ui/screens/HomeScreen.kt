@@ -1,6 +1,7 @@
 package com.ylib.quicksave.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,8 +23,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -32,6 +36,9 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -51,9 +58,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.ylib.quicksave.ui.theme.Dim
 import com.ylib.quicksave.ui.viewmodel.HomeViewModel
 import com.ylib.quicksave.ui.viewmodel.SaveResult
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
     val uiState by viewModel.uiState.collectAsState()
@@ -82,30 +91,31 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
         }
     }
 
-    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("QuickSave") },
+                actions = {
+                    IconButton(onClick = { navController.navigate("settings") }) {
+                        Icon(Icons.Filled.Settings, contentDescription = "设置")
+                    }
+                }
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(horizontal = Dim.screenHorizontal),
+            verticalArrangement = Arrangement.spacedBy(Dim.itemSpacing),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                vertical = Dim.screenVertical
+            )
         ) {
-            item {
-                Spacer(Modifier.height(16.dp))
-                Text("QuickSave", style = MaterialTheme.typography.headlineMedium)
-                Spacer(Modifier.height(16.dp))
-            }
-
             if (uiState.targetFileUri == null) {
                 item { NoFileWarningCard { navController.navigate("settings") } }
-            }
-
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    OutlinedButton(onClick = { navController.navigate("settings") }) {
-                        Text("设置")
-                    }
-                }
             }
 
             item {
@@ -133,7 +143,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 16.dp),
+                            .padding(vertical = Dim.screenVertical),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -159,8 +169,6 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                     ) { Text("清空保存文件内容") }
                 }
             }
-
-            item { Spacer(Modifier.height(16.dp)) }
         }
 
         if (uiState.showClearDialog) {
@@ -208,9 +216,9 @@ internal fun CategoryChipRow(
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(Dim.labelToContent))
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(Dim.chipSpacing),
             modifier = Modifier.fillMaxWidth()
         ) {
             items(categories) { category ->
@@ -254,13 +262,13 @@ internal fun ClipboardCard(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         )
     ) {
-        Column(Modifier.padding(12.dp)) {
+        Column(Modifier.padding(Dim.cardPadding)) {
             Text(
                 "当前剪切板",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(Dim.cardLabelToBody))
             Text(
                 clipText,
                 style = MaterialTheme.typography.bodyMedium,
@@ -268,13 +276,13 @@ internal fun ClipboardCard(
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(Dim.cardBodyToAction))
             Button(
                 onClick = onSave,
                 enabled = !isSaving,
                 modifier = Modifier.align(Alignment.End)
             ) {
-                Text(if (isSaving) "保存中…" else "保存到文件 ▶")
+                Text(if (isSaving) "保存中…" else "保存到文件")
             }
         }
     }
@@ -293,15 +301,16 @@ internal fun ManualInputCard(
         modifier = modifier
             .fillMaxWidth()
             .testTag(TAG_MANUAL_INPUT_CARD),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
-        Column(Modifier.padding(12.dp)) {
+        Column(Modifier.padding(Dim.cardPadding)) {
             Text(
                 "手动输入",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(Dim.cardLabelToBody))
             OutlinedTextField(
                 value = text,
                 onValueChange = onTextChange,
@@ -312,7 +321,7 @@ internal fun ManualInputCard(
                     .fillMaxWidth()
                     .testTag(TAG_MANUAL_INPUT_FIELD)
             )
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(Dim.cardBodyToAction))
             Button(
                 onClick = onSave,
                 enabled = canSave,
@@ -320,7 +329,7 @@ internal fun ManualInputCard(
                     .align(Alignment.End)
                     .testTag(TAG_MANUAL_SAVE_BUTTON)
             ) {
-                Text(if (isSaving) "保存中…" else "保存到文件 ▶")
+                Text(if (isSaving) "保存中…" else "保存到文件")
             }
         }
     }
@@ -383,13 +392,13 @@ private fun NoFileWarningCard(onNavigateToSettings: () -> Unit) {
                     .fillMaxHeight()
                     .background(MaterialTheme.colorScheme.error)
             )
-            Column(modifier = Modifier.padding(12.dp)) {
+            Column(modifier = Modifier.padding(Dim.cardPadding)) {
                 Text(
                     "未设置保存文件",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.error
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(Dim.labelToContent))
                 OutlinedButton(onClick = onNavigateToSettings) {
                     Text("前往设置")
                 }

@@ -1,7 +1,7 @@
 # QuickSave — UI 交互设计文档（UI）
 
-> 版本：1.3
-> 日期：2026-06-11
+> 版本：1.4
+> 日期：2026-08-11
 > 作者：HIE 设计师
 
 ---
@@ -59,17 +59,20 @@
 - 卡片内边距：`12dp`
 - Chip 行横向间距：`6dp`
 
+> v1.4：上述间距/圆角值集中为代码常量 `ui/theme/DimTokens.kt`（`Dim` 对象 + `AppShapes`），所有页面与透明输入窗共用，替代散落在各 Composable 中的硬编码魔数。Card 圆角通过 `AppShapes.medium = RoundedCornerShape(12dp)` 显式注入 Theme，不再依赖 Material 默认值。
+
 ---
 
 ## 三、页面设计
 
-### 3.1 主页（HomeScreen，v1.2）
+### 3.1 主页（HomeScreen，v1.4）
 
 #### 布局结构（从上到下）
 
 ```
 ┌─────────────────────────────────────┐
-│  QuickSave          headlineMedium  │
+│  QuickSave               [⚙ 设置]   │  ← TopAppBar（surface 色），右侧设置 IconButton
+├─────────────────────────────────────┤
 │  [16dp]                             │
 ├── 未配置文件警告卡（仅未配置时显示）──┤
 │  ┌───────────────────────────────┐  │
@@ -77,33 +80,30 @@
 │  │  [前往设置]                   │  │
 │  └───────────────────────────────┘  │
 │  [8dp]                              │
-├── 操作栏 ──────────────────────────── ┤
-│                          [设置]     │  ← OutlinedButton，右对齐
-│  [12dp]                             │
 ├── ★ 共享分类 Chip 行（v1.2 顶层置顶）─┤
 │  分类（可选）       labelSmall      │
 │  [✓工作] [学习] [生活] [＋新增]    │  ← FilterChip 行，剪切板/手动输入两路共用
-│  [12dp]                             │
+│  [8dp]                              │
 ├── 剪切板内容卡（剪切板有内容时显示）──┤
 │  ┌───────────────────────────────┐  │
 │  │ 当前剪切板      labelSmall    │  │  ← PrimaryContainer 背景
 │  │ [4dp]                         │  │
 │  │ 文字内容预览，最多 3 行…       │  │  ← bodyMedium
 │  │ [10dp]                        │  │
-│  │              [保存到文件 ▶]   │  │  ← FilledButton，右对齐
+│  │              [保存到文件]     │  │  ← FilledButton，右对齐
 │  └───────────────────────────────┘  │
 ├── 剪切板空状态（剪切板为空时显示）────┤
 │  剪切板为空，请先在其他应用复制文字  │  ← bodySmall, OnSurfaceVariant, 居中
-│  [12dp]                             │
+│  [8dp]                              │
 ├── ★ 手动输入卡（v1.2 新增）───────── ┤
 │  ┌───────────────────────────────┐  │
-│  │ 手动输入        labelSmall    │  │  ← Surface 背景 + Outline 描边
+│  │ 手动输入        labelSmall    │  │  ← Surface 背景 + Outline 1dp 描边
 │  │ [4dp]                         │  │
 │  │ ┌───────────────────────────┐ │  │
 │  │ │ 在此输入要保存的文字       │ │  │  ← OutlinedTextField, minLines=3, maxLines=6
 │  │ └───────────────────────────┘ │  │
 │  │ [10dp]                        │  │
-│  │              [保存到文件 ▶]   │  │  ← FilledButton，右对齐
+│  │              [保存到文件]     │  │  ← FilledButton，右对齐
 │  └───────────────────────────────┘  │
 ├── 清空操作（已配置文件时显示）────────┤
 │  [        清空保存文件内容        ]  │  ← OutlinedButton，Error 色，全宽
@@ -111,6 +111,12 @@
 └─────────────────────────────────────┘
 ```
 
+> v1.4 关键变更：
+> - **新增 surface 色 TopAppBar**：主页加顶栏（标题 "QuickSave" + 右侧设置图标按钮），与设置页顶栏风格统一；原滚动区右下角的「设置」OutlinedButton 移除，设置入口上移到顶栏 action。
+> - **去装饰性箭头**：「保存到文件 ▶」「选择保存文件 ▶」等文案中的 `▶` 移除，回归"界面不添加装饰性元素"原则（§一）。
+> - **手动输入卡补描边**：`ManualInputCard` 按 §3.1 规格补上 1dp `outline` 描边（此前仅设了 surface 背景未描边，与文档不符）。
+> - **间距统一为 Dim 常量**：所有硬编码 dp 改用 `Dim` 对象。
+>
 > v1.2 关键变更：分类 Chip 行从剪切板卡内**抽出并上移到主页最顶层**，让用户线性决策"先选分类 → 再选保存来源 → 点保存"；新增手动输入卡，与剪切板卡并存。
 
 #### FilterChip 行规范（顶层共享区块）
@@ -130,7 +136,7 @@
 
 | 元素 | 规格 |
 |------|------|
-| 容器 | Card，圆角 12dp，背景 Surface，描边 Outline 1dp |
+| 容器 | Card，圆角 12dp，背景 Surface，描边 Outline 1dp（v1.4 起显式 `BorderStroke` 落地） |
 | TextField | `OutlinedTextField`，`minLines=3, maxLines=6`，超出滚动 |
 | placeholder | 「在此输入要保存的文字」 |
 | 保存按钮启用条件 | `text.trim().isNotBlank() && !isManualSaving` |
@@ -149,13 +155,13 @@
 
 ---
 
-### 3.2 设置页（SettingsScreen）
+### 3.2 设置页（SettingsScreen，v1.4）
 
 ```
 ┌─────────────────────────────────────┐
-│  ←  设置         TopAppBar（Primary色）
+│  ←  设置         TopAppBar（surface色）
 ├─────────────────────────────────────┤
-│  保存目标文件           titleMedium  │
+│  保存目标文件           titleMedium  │  ← SectionHeader（onSurface 色）
 │  ─────────────────────────────────  │
 │                                     │
 │  【已配置状态】                      │
@@ -168,14 +174,14 @@
 │  【未配置状态（替代上方）】            │
 │  ┌───────────────────────────────┐  │
 │  │▌ 尚未设置，请选择保存文件      │  │  ← 红色左条 Card
-│  │  [选择保存文件 ▶]             │  │
+│  │  [选择保存文件]               │  │
 │  └───────────────────────────────┘  │
 │                                     │
 ├── ★ 分类管理区块 ───────────────────── ┤
-│  分类管理               titleMedium │
+│  分类管理               titleMedium │  ← SectionHeader（onSurface 色）
 │  ─────────────────────────────────  │
 │                                     │
-│  ⠿  工作       ✎ 重命名   ✕ 删除   │  ← 拖拽手柄在左侧
+│  ⠿  工作       ✎ 重命名   ✕ 删除   │  ← 自绘 2×3 圆点拖拽手柄在左侧
 │  ⠿  学习       ✎ 重命名   ✕ 删除   │
 │  ⠿  生活       ✎ 重命名   ✕ 删除   │
 │                                     │
@@ -184,22 +190,28 @@
 │                                     │
 │  [       ＋ 新增分类       ]         │  ← OutlinedButton，全宽
 │                                     │
-│  重命名分类不会修改已保存的记录。      │  ← bodySmall, Outline 色
+│  重命名分类不会修改已保存的记录。      │  ← bodySmall, OnSurfaceVariant 色
 └─────────────────────────────────────┘
 ```
+
+> v1.4 关键变更：
+> - **顶栏去 Primary**：TopAppBar 从 Primary 填充改为 surface 色（M3 推荐做法），与主页顶栏基调一致，减少色彩冲击。
+> - **分区标题统一**：抽出 `SectionHeader` Composable，「保存目标文件 / 全局悬浮窗 / 分类管理」三块共用，标题色从 `primary` 改为 `onSurface`。
+> - **拖拽手柄升级**：从文本字符 `⠿` 改为自绘 2×3 圆点 `DragHandle`（`Canvas`），不依赖 material-icons-extended，视觉更规整、零体积代价。
+> - **去装饰性箭头**：「选择保存文件 ▶」改为「选择保存文件」。
 
 #### 分类拖拽排序规范
 
 - 使用 `sh.calvin.reorderable` 库（`LazyColumn` + `ReorderableItem`）
-- 长按拖拽手柄（`⠿`）触发，拖动中使用 `animateDpAsState` 提升阴影高度（0dp → 8dp）
+- 长按拖拽手柄（自绘 2×3 圆点 `DragHandle`）触发，拖动中使用 `animateDpAsState` 提升阴影高度（0dp → 8dp）
 - 松手后顺序实时写入 DataStore
 - 外层为 `Column + verticalScroll`；内层 LazyColumn 设 `userScrollEnabled=false`、`heightIn(max=400.dp)` 避免嵌套滚动冲突
 
-#### 设置页「全局悬浮窗」区块（v1.3 新增）
+#### 设置页「全局悬浮窗」区块（v1.3 新增，v1.4 标题色随 SectionHeader 统一）
 
 ```
 ├── ★ 全局悬浮窗区块（v1.3）────────────── ┤
-│  全局悬浮窗            titleMedium  │
+│  全局悬浮窗            titleMedium  │  ← SectionHeader（onSurface 色）
 │  ─────────────────────────────────  │
 │  启用全局悬浮窗            [ ●—— ]  │  ← 标签 + Switch（右侧）
 │  开启后将在所有应用之上显示一个贴边     │  ← bodySmall 说明
