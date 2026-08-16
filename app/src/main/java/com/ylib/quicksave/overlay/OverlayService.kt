@@ -1,5 +1,8 @@
 package com.ylib.quicksave.overlay
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.app.Service
 import android.content.ClipboardManager
 import android.content.ComponentCallbacks2
@@ -21,6 +24,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
+import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -49,6 +53,8 @@ class OverlayService : Service() {
         private const val HANDLE_W_DP = 8
         private const val HANDLE_H_DP = 64
         private const val HANDLE_TOUCH_W_DP = 48
+        private const val HANDLE_PRESS_DURATION_MS = 100L
+        private const val HANDLE_SETTLE_DURATION_MS = 220L
         private const val ACTION_W_DP = 92
         private const val ACTION_H_DP = 76
         private const val PANEL_ALPHA = 82 // #173942 at 32%
@@ -81,6 +87,7 @@ class OverlayService : Service() {
     private var expanded = false
     private var currentEdge = OverlayEdge.RIGHT
     private var clipboardSaving = false
+    private var edgeAnimator: ValueAnimator? = null
     // 防止 Service.onConfigurationChanged 与 ComponentCallbacks2 两条路径同时触发导致重复 remove+add
     @Volatile private var relayouting = false
 
@@ -156,6 +163,7 @@ class OverlayService : Service() {
             return
         }
         relayouting = true
+        cancelEdgeAnimation()
         // 横竖屏切换时展开态的面板布局已不适用，先折叠回把手
         if (expanded) collapse()
         try {
@@ -187,6 +195,8 @@ class OverlayService : Service() {
     }
 
     override fun onDestroy() {
+        cancelEdgeAnimation()
+        handleVisualView?.animate()?.cancel()
         unregisterComponentCallbacks(configCallback)
         removeOverlay()
         scope.cancel()
@@ -403,6 +413,8 @@ class OverlayService : Service() {
         handle.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
+                    cancelEdgeAnimation()
+                    animateHandlePress(pressed = true)
                     downRawX = event.rawX; downRawY = event.rawY
                     downY = params.y; moved = false
                     true
@@ -421,16 +433,17 @@ class OverlayService : Service() {
                     true
                 }
                 MotionEvent.ACTION_UP -> {
+                    animateHandlePress(pressed = false)
                     if (!moved) {
                         handle.performClick()
                     } else {
-                        snapToNearestEdge(event.rawX)
-                        persistPosition(handle)
+                        animateToNearestEdge(event.rawX, handle)
                     }
                     true
                 }
                 MotionEvent.ACTION_CANCEL -> {
                     // 系统取消触摸序列：不切换、不吸附、不持久化，把手留在当前位置
+                    animateHandlePress(pressed = false)
                     moved = false
                     true
                 }
@@ -439,13 +452,68 @@ class OverlayService : Service() {
         }
     }
 
-    private fun snapToNearestEdge(rawX: Float) {
-        // 把手在 x 方向始终贴边、仅纵向拖动；用手指 rawX 判断用户想吸附到哪一边，符合预期。
-        currentEdge = OverlayPositionCalculator.nearestEdge(rawX.roundToInt(), screenWidth)
-        params.gravity = Gravity.TOP or edgeGravity(currentEdge)
-        params.x = 0
-        alignHandleVisual()
-        windowManager.updateViewLayout(rootView, params)
+    private fun animateHandlePress(pressed: Boolean) {
+        val visual = handleVisualView ?: return
+        visual.animate()
+            .cancel()
+        visual.animate()
+            .scaleX(if (pressed) 1.04f else 1f)
+            .setDuration(if (pressed) HANDLE_PRESS_DURATION_MS else HANDLE_SETTLE_DURATION_MS)
+            .setInterpolator(DecelerateInterpolator(1.6f))
+            .start()
+    }
+
+    private fun animateToNearestEdge(rawX: Float, handle: View) {
+        val root = rootView ?: return
+        val targetEdge = OverlayPositionCalculator.nearestEdge(rawX.roundToInt(), screenWidth)
+        if (targetEdge == currentEdge) {
+            persistPosition(handle)
+            return
+        }
+
+        val rootWidth = root.width.takeIf { it > 0 }
+            ?: root.measuredWidth.takeIf { it > 0 }
+            ?: dp(HANDLE_TOUCH_W_DP)
+        val startX = if (currentEdge == OverlayEdge.LEFT) 0 else screenWidth - rootWidth
+        val targetX = if (targetEdge == OverlayEdge.LEFT) 0 else screenWidth - rootWidth
+
+        // Keep the current visual position while switching to a left-based coordinate system.
+        params.gravity = Gravity.TOP or Gravity.LEFT
+        params.x = startX
+        runCatching { windowManager.updateViewLayout(root, params) }
+            .onFailure { Log.e(TAG, "animateToNearestEdge: prepare FAILED", it) }
+
+        val animator = ValueAnimator.ofInt(startX, targetX).apply {
+            duration = HANDLE_SETTLE_DURATION_MS
+            interpolator = DecelerateInterpolator(1.6f)
+            addUpdateListener {
+                params.x = it.animatedValue as Int
+                runCatching { windowManager.updateViewLayout(root, params) }
+                    .onFailure { error -> Log.e(TAG, "animateToNearestEdge: update FAILED", error) }
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    if (edgeAnimator !== animation || rootView !== root) return
+                    edgeAnimator = null
+                    currentEdge = targetEdge
+                    params.gravity = Gravity.TOP or edgeGravity(currentEdge)
+                    params.x = 0
+                    alignHandleVisual()
+                    runCatching { windowManager.updateViewLayout(root, params) }
+                        .onFailure { error -> Log.e(TAG, "animateToNearestEdge: finish FAILED", error) }
+                    persistPosition(handle)
+                }
+            })
+        }
+        edgeAnimator = animator
+        animator.start()
+    }
+
+    private fun cancelEdgeAnimation() {
+        edgeAnimator?.let {
+            edgeAnimator = null
+            it.cancel()
+        }
     }
 
     private fun handleVisualGravity() =
