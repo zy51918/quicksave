@@ -56,22 +56,22 @@
 
   <!-- Overlay 2: expanded three-action panel -->
   <rect x="950" y="456" width="390" height="112" rx="20" fill="#173942" fill-opacity=".32" stroke="#D7E3E5" stroke-opacity=".18" filter="url(#shadow)"/>
-  <rect x="968" y="474" width="108" height="76" rx="14" fill="#087F7B" fill-opacity=".78"/>
-  <rect x="1086" y="474" width="108" height="76" rx="14" fill="#087F7B" fill-opacity=".78"/>
-  <rect x="1204" y="474" width="118" height="76" rx="14" fill="#087F7B" fill-opacity=".78"/>
-  <!-- equal-level actions: same teal surface, opacity, icon weight, and label treatment -->
+  <rect x="970" y="474" width="110" height="76" rx="14" fill="#087F7B" fill-opacity=".78"/>
+  <rect x="1090" y="474" width="110" height="76" rx="14" fill="#087F7B" fill-opacity=".78"/>
+  <rect x="1210" y="474" width="110" height="76" rx="14" fill="#087F7B" fill-opacity=".78"/>
+  <!-- equal-level actions: same width, teal surface, opacity, icon weight, and label treatment -->
   <!-- save clipboard icon -->
-  <path d="M1010 484h20v22h-20zM1014 480h12v6h-12z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M1014 500h12" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
-  <text x="1022" y="538" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="11" fill="#FFFFFF">保存剪切板</text>
+  <path d="M1015 484h20v22h-20zM1019 480h12v6h-12z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M1019 500h12" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+  <text x="1025" y="538" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="11" fill="#FFFFFF">保存剪切板</text>
   <!-- copy icon -->
-  <rect x="1129" y="485" width="20" height="22" rx="3" fill="none" stroke="#FFFFFF" stroke-width="2"/>
-  <path d="M1134 480h13a3 3 0 0 1 3 3v19" fill="none" stroke="#FFFFFF" stroke-width="2"/>
-  <text x="1140" y="538" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="11" fill="#FFFFFF">文字输入</text>
+  <rect x="1134" y="485" width="20" height="22" rx="3" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+  <path d="M1139 480h13a3 3 0 0 1 3 3v19" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="1145" y="538" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="11" fill="#FFFFFF">文字输入</text>
   <!-- microphone icon -->
-  <rect x="1256" y="480" width="12" height="22" rx="6" fill="none" stroke="#FFFFFF" stroke-width="2"/>
-  <path d="M1250 497a12 12 0 0 0 24 0M1262 509v8M1255 517h14" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
-  <text x="1263" y="538" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="11" fill="#FFFFFF">录音</text>
+  <rect x="1258" y="480" width="12" height="22" rx="6" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+  <path d="M1252 497a12 12 0 0 0 24 0M1264 509v8M1257 517h14" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+  <text x="1265" y="538" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="11" fill="#FFFFFF">录音</text>
   <text x="1145" y="584" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="13" font-weight="700" fill="#102A36">展开态 · 三个快捷操作同级</text>
 
   <!-- Overlay 3: success feedback -->
