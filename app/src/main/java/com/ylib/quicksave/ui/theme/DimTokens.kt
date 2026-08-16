@@ -12,31 +12,31 @@ import androidx.compose.ui.unit.dp
  */
 object Dim {
     /** 页面水平边距 */
-    val screenHorizontal = 16.dp
+    val screenHorizontal = 20.dp
 
     /** 组件之间的常规垂直间距 */
-    val itemSpacing = 8.dp
+    val itemSpacing = 12.dp
 
     /** 卡片内边距 */
-    val cardPadding = 12.dp
+    val cardPadding = 16.dp
 
     /** Chip 行横向间距 */
     val chipSpacing = 6.dp
 
     /** 页面首/尾额外留白 */
-    val screenVertical = 16.dp
+    val screenVertical = 20.dp
 
     /** 设置页分区之间的间距 */
-    val sectionSpacing = 24.dp
+    val sectionSpacing = 32.dp
 
     /** 标签与内容的间距（如「分类（可选）」与 Chip 行） */
-    val labelToContent = 4.dp
+    val labelToContent = 8.dp
 
     /** 卡片内 label 与正文之间的间距 */
-    val cardLabelToBody = 4.dp
+    val cardLabelToBody = 8.dp
 
     /** 卡片内正文与底部按钮的间距 */
-    val cardBodyToAction = 10.dp
+    val cardBodyToAction = 16.dp
 }
 
 /**
@@ -45,5 +45,7 @@ object Dim {
  * Card 统一 12dp 圆角，显式指定以避免依赖 Material 默认值带来的版本漂移。
  */
 val AppShapes = Shapes(
-    medium = RoundedCornerShape(12.dp)
+    small = RoundedCornerShape(10.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(24.dp)
 )

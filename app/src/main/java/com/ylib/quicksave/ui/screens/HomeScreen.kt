@@ -1,11 +1,12 @@
 package com.ylib.quicksave.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -13,11 +14,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -26,6 +34,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,11 +43,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -50,11 +59,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -92,14 +103,31 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("QuickSave") },
-                actions = {
-                    IconButton(onClick = { navController.navigate("settings") }) {
-                        Icon(Icons.Filled.Settings, contentDescription = "设置")
+                title = {
+                    Column {
+                        Text(
+                            "QUICKSAVE",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text("快速归档", style = MaterialTheme.typography.titleLarge)
                     }
-                }
+                },
+                actions = {
+                    IconButton(
+                        onClick = { navController.navigate("settings") },
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(Icons.Filled.Settings, contentDescription = "打开设置")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -110,14 +138,11 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                 .padding(padding)
                 .padding(horizontal = Dim.screenHorizontal),
             verticalArrangement = Arrangement.spacedBy(Dim.itemSpacing),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                vertical = Dim.screenVertical
-            )
+            contentPadding = PaddingValues(bottom = 28.dp)
         ) {
             if (uiState.targetFileUri == null) {
                 item { NoFileWarningCard { navController.navigate("settings") } }
             }
-
             item {
                 CategoryChipRow(
                     categories = uiState.categories,
@@ -126,7 +151,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                     onAddClick = viewModel::showAddCategoryDialog
                 )
             }
-
+            item { SectionLabel("FROM CLIPBOARD", "刚刚复制的内容") }
             if (uiState.clipText != null) {
                 item {
                     ClipboardCard(
@@ -136,19 +161,9 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                     )
                 }
             } else {
-                item {
-                    Text(
-                        "剪切板为空，请先在其他应用复制文字",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = Dim.screenVertical),
-                        textAlign = TextAlign.Center
-                    )
-                }
+                item { EmptyClipboardState() }
             }
-
+            item { SectionLabel("OR WRITE IT HERE", "手动记录") }
             item {
                 ManualInputCard(
                     text = uiState.manualInputText,
@@ -157,17 +172,8 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                     onSave = viewModel::saveManualInput
                 )
             }
-
             if (uiState.targetFileUri != null) {
-                item {
-                    OutlinedButton(
-                        onClick = { viewModel.showClearDialog() },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        )
-                    ) { Text("清空保存文件内容") }
-                }
+                item { ClearFileAction(onClick = viewModel::showClearDialog) }
             }
         }
 
@@ -186,7 +192,6 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                 }
             )
         }
-
         if (uiState.showAddCategoryDialog) {
             CategoryNameDialog(
                 title = "新增分类",
@@ -203,6 +208,59 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
 }
 
 @Composable
+private fun SectionLabel(eyebrow: String, title: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.Bottom
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                eyebrow,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                fontFamily = FontFamily.Monospace
+            )
+            Spacer(Modifier.height(3.dp))
+            Text(title, style = MaterialTheme.typography.titleMedium)
+        }
+        HorizontalDivider(
+            modifier = Modifier
+                .width(48.dp)
+                .padding(bottom = 4.dp),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+    }
+}
+
+@Composable
+private fun EmptyClipboardState() {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Filled.ContentCopy,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                "剪切板为空，请先在其他应用复制文字",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
 internal fun CategoryChipRow(
     categories: List<String>,
     selectedCategory: String?,
@@ -210,40 +268,57 @@ internal fun CategoryChipRow(
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxWidth().testTag(TAG_CATEGORY_CHIP_ROW)) {
-        Text(
-            "分类（可选）",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.height(Dim.labelToContent))
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(Dim.chipSpacing),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            items(categories) { category ->
-                FilterChip(
-                    selected = selectedCategory == category,
-                    onClick = {
-                        onSelect(if (selectedCategory == category) null else category)
-                    },
-                    label = { Text(category) }
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag(TAG_CATEGORY_CHIP_ROW),
+        color = MaterialTheme.colorScheme.surface,
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("分类（可选）", style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "用于之后查找",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            item {
-                FilterChip(
-                    selected = false,
-                    onClick = onAddClick,
-                    label = { Text("＋ 新增") },
-                    colors = FilterChipDefaults.filterChipColors(
-                        labelColor = MaterialTheme.colorScheme.outline
-                    ),
-                    border = FilterChipDefaults.filterChipBorder(
-                        enabled = true,
-                        selected = false,
-                        borderColor = MaterialTheme.colorScheme.outlineVariant
+            Spacer(Modifier.height(Dim.labelToContent))
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(Dim.chipSpacing),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(categories) { category ->
+                    FilterChip(
+                        selected = selectedCategory == category,
+                        onClick = {
+                            onSelect(if (selectedCategory == category) null else category)
+                        },
+                        label = { Text(category) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     )
-                )
+                }
+                item {
+                    FilterChip(
+                        selected = false,
+                        onClick = onAddClick,
+                        label = { Text("＋ 新增") },
+                        colors = FilterChipDefaults.filterChipColors(
+                            labelColor = MaterialTheme.colorScheme.primary
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = false,
+                            borderColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                }
             }
         }
     }
@@ -257,31 +332,57 @@ internal fun ClipboardCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.fillMaxWidth().testTag(TAG_CLIPBOARD_CARD),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag(TAG_CLIPBOARD_CARD),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        shape = MaterialTheme.shapes.large
     ) {
-        Column(Modifier.padding(Dim.cardPadding)) {
-            Text(
-                "当前剪切板",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(Modifier.height(Dim.cardLabelToBody))
+        Column(Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(MaterialTheme.shapes.small)
+                        .background(MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(
+                        Icons.Filled.ContentCopy,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                Spacer(Modifier.width(10.dp))
+                Column {
+                    Text("当前剪切板", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "准备好保存到文件",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f)
+                    )
+                }
+            }
+            Spacer(Modifier.height(16.dp))
             Text(
                 clipText,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                maxLines = 3,
+                maxLines = 4,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(Modifier.height(Dim.cardBodyToAction))
+            Spacer(Modifier.height(18.dp))
             Button(
                 onClick = onSave,
                 enabled = !isSaving,
-                modifier = Modifier.align(Alignment.End)
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
+                Icon(Icons.Filled.Save, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
                 Text(if (isSaving) "保存中…" else "保存到文件")
             }
         }
@@ -302,18 +403,16 @@ internal fun ManualInputCard(
             .fillMaxWidth()
             .testTag(TAG_MANUAL_INPUT_CARD),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        shape = MaterialTheme.shapes.large
     ) {
-        Column(Modifier.padding(Dim.cardPadding)) {
-            Text(
-                "手动输入",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(Modifier.height(Dim.cardLabelToBody))
+        Column(Modifier.padding(16.dp)) {
+            Text("写下一条新的记录", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(12.dp))
             OutlinedTextField(
                 value = text,
                 onValueChange = onTextChange,
+                label = { Text("内容") },
                 placeholder = { Text("在此输入要保存的文字") },
                 minLines = 3,
                 maxLines = 6,
@@ -321,15 +420,47 @@ internal fun ManualInputCard(
                     .fillMaxWidth()
                     .testTag(TAG_MANUAL_INPUT_FIELD)
             )
-            Spacer(Modifier.height(Dim.cardBodyToAction))
+            Spacer(Modifier.height(14.dp))
             Button(
                 onClick = onSave,
                 enabled = canSave,
                 modifier = Modifier
-                    .align(Alignment.End)
+                    .fillMaxWidth()
                     .testTag(TAG_MANUAL_SAVE_BUTTON)
             ) {
+                Icon(Icons.Filled.Save, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
                 Text(if (isSaving) "保存中…" else "保存到文件")
+            }
+        }
+    }
+}
+
+@Composable
+private fun ClearFileAction(onClick: () -> Unit) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 16.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Filled.DeleteOutline,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error
+            )
+            Spacer(Modifier.width(10.dp))
+            Text(
+                "清空保存文件内容",
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            TextButton(onClick = onClick) {
+                Text("清空", color = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -360,7 +491,7 @@ fun CategoryNameDialog(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it.replace("\n", "") },
-                placeholder = { Text("分类名称") },
+                label = { Text("分类名称") },
                 isError = isDuplicate,
                 supportingText = if (isDuplicate) {
                     { Text("分类名已存在", color = MaterialTheme.colorScheme.error) }
@@ -384,23 +515,35 @@ fun CategoryNameDialog(
 
 @Composable
 private fun NoFileWarningCard(onNavigateToSettings: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+        shape = MaterialTheme.shapes.medium
+    ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
             Box(
                 modifier = Modifier
-                    .width(4.dp)
+                    .width(5.dp)
                     .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.error)
+                    .background(MaterialTheme.colorScheme.tertiary)
             )
-            Column(modifier = Modifier.padding(Dim.cardPadding)) {
+            Column(Modifier.padding(16.dp)) {
                 Text(
-                    "未设置保存文件",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.error
+                    "还差一步就能保存",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
-                Spacer(Modifier.height(Dim.labelToContent))
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "先选择一个目标文件，QuickSave 才能把内容写进去。",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+                Spacer(Modifier.height(12.dp))
                 OutlinedButton(onClick = onNavigateToSettings) {
-                    Text("前往设置")
+                    Icon(Icons.Filled.Edit, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("去选择文件")
                 }
             }
         }

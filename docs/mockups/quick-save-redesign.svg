@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="960" viewBox="0 0 1440 960">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#102A36" flood-opacity=".18"/>
+    </filter>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#102A36" flood-opacity=".10"/>
+    </filter>
+    <clipPath id="homeClip"><rect x="204" y="86" width="420" height="788" rx="30"/></clipPath>
+    <clipPath id="settingsClip"><rect x="816" y="86" width="420" height="788" rx="30"/></clipPath>
+  </defs>
+
+  <rect width="1440" height="960" fill="#DCE6E7"/>
+  <circle cx="80" cy="80" r="140" fill="#C8DEDE" opacity=".7"/>
+  <circle cx="1370" cy="900" r="190" fill="#C8DEDE" opacity=".55"/>
+
+  <text x="72" y="66" font-family="PingFang SC, Noto Sans CJK SC, sans-serif" font-size="24" font-weight="700" fill="#102A36">QuickSave · UI redesign</text>
+  <text x="72" y="96" font-family="PingFang SC, Noto Sans CJK SC, sans-serif" font-size="14" fill="#45616A">快速归档工作台 / Android Compose mockup</text>
+
+  <!-- Home phone -->
+  <rect x="190" y="72" width="448" height="816" rx="42" fill="#102A36" filter="url(#shadow)"/>
+  <rect x="204" y="86" width="420" height="788" rx="30" fill="#F4F7F7"/>
+  <rect x="358" y="98" width="112" height="24" rx="12" fill="#102A36"/>
+  <g clip-path="url(#homeClip)">
+    <rect x="204" y="86" width="420" height="788" fill="#F4F7F7"/>
+    <text x="230" y="145" font-family="PingFang SC, sans-serif" font-size="11" font-weight="700" letter-spacing="1.4" fill="#087F7B">QUICKSAVE</text>
+    <text x="230" y="171" font-family="PingFang SC, sans-serif" font-size="22" font-weight="700" fill="#102A36">快速归档</text>
+    <circle cx="590" cy="157" r="22" fill="#E7EFF0"/>
+    <!-- standard Material Icons / settings silhouette -->
+    <path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.02-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.37-.31-.6-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98L14.5 2.42C14.47 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.5.42L9.12 5.07c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.08-.48 0-.6.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.08.65-.08.98s.03.66.08.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.37.31.6.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.38-2.65c.61-.25 1.17-.58 1.69-.98l2.49 1c.23.08.48 0 .6-.22l2-3.46c.12-.22.07-.49-.12-.64zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z" transform="translate(580 145) scale(.7)" fill="#45616A"/>
+    <rect x="230" y="230" width="368" height="84" rx="16" fill="#FFFFFF" stroke="#C5D2D4"/>
+    <text x="246" y="254" font-family="PingFang SC, sans-serif" font-size="13" font-weight="700" fill="#102A36">分类（可选）</text>
+    <text x="345" y="254" font-family="PingFang SC, sans-serif" font-size="11" fill="#45616A">用于之后查找</text>
+    <rect x="246" y="268" width="56" height="30" rx="15" fill="#BCE9E4"/>
+    <text x="260" y="288" font-family="PingFang SC, sans-serif" font-size="12" font-weight="700" fill="#003735">工作</text>
+    <rect x="310" y="268" width="56" height="30" rx="15" fill="#FFFFFF" stroke="#C5D2D4"/>
+    <text x="324" y="288" font-family="PingFang SC, sans-serif" font-size="12" fill="#45616A">学习</text>
+    <rect x="374" y="268" width="72" height="30" rx="15" fill="#FFFFFF" stroke="#087F7B"/>
+    <text x="389" y="288" font-family="PingFang SC, sans-serif" font-size="12" fill="#087F7B">＋ 新增</text>
+
+    <text x="230" y="349" font-family="monospace" font-size="10" font-weight="700" letter-spacing="1" fill="#087F7B">FROM CLIPBOARD</text>
+    <text x="230" y="372" font-family="PingFang SC, sans-serif" font-size="16" font-weight="700" fill="#102A36">刚刚复制的内容</text>
+    <path d="M545 367h53" stroke="#C5D2D4"/>
+
+    <rect x="230" y="392" width="368" height="168" rx="22" fill="#BCE9E4"/>
+    <rect x="248" y="410" width="34" height="34" rx="9" fill="#087F7B"/>
+    <rect x="257" y="419" width="15" height="17" rx="2" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+    <path d="M260 415h10v5" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+    <text x="294" y="426" font-family="PingFang SC, sans-serif" font-size="14" font-weight="700" fill="#003735">当前剪切板</text>
+    <text x="294" y="443" font-family="PingFang SC, sans-serif" font-size="11" fill="#2C6B69">准备好保存到文件</text>
+    <text x="248" y="484" font-family="PingFang SC, sans-serif" font-size="15" fill="#003735">读完这段内容后，记得把它归档下来。</text>
+    <text x="248" y="506" font-family="PingFang SC, sans-serif" font-size="15" fill="#003735">以后可以按分类快速找到。</text>
+    <rect x="248" y="522" width="332" height="26" rx="13" fill="#087F7B"/>
+    <text x="374" y="540" font-family="PingFang SC, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF">↓  保存到文件</text>
+
+    <text x="230" y="594" font-family="monospace" font-size="10" font-weight="700" letter-spacing="1" fill="#087F7B">OR WRITE IT HERE</text>
+    <text x="230" y="616" font-family="PingFang SC, sans-serif" font-size="16" font-weight="700" fill="#102A36">手动记录</text>
+    <rect x="230" y="632" width="368" height="136" rx="22" fill="#FFFFFF" stroke="#C5D2D4"/>
+    <text x="248" y="658" font-family="PingFang SC, sans-serif" font-size="12" fill="#45616A">写下一条新的记录</text>
+    <rect x="248" y="670" width="332" height="34" rx="8" fill="#FFFFFF" stroke="#71888D"/>
+    <text x="260" y="691" font-family="PingFang SC, sans-serif" font-size="12" fill="#71888D">在此输入要保存的文字</text>
+    <rect x="248" y="720" width="332" height="30" rx="15" fill="#087F7B"/>
+    <text x="369" y="740" font-family="PingFang SC, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF">↓  保存到文件</text>
+
+    <rect x="230" y="782" width="368" height="48" rx="16" fill="#FFFFFF" stroke="#C5D2D4"/>
+    <rect x="246" y="794" width="24" height="24" rx="7" fill="#FFF0ED"/>
+    <path d="M253 801h10M255 804v8h6v-8M256 798h4" stroke="#B94D3D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="280" y="812" font-family="PingFang SC, sans-serif" font-size="12" fill="#102A36">清空保存文件内容</text>
+    <text x="500" y="812" font-family="PingFang SC, sans-serif" font-size="12" font-weight="700" fill="#B94D3D">清空</text>
+  </g>
+
+  <!-- Settings phone -->
+  <rect x="802" y="72" width="448" height="816" rx="42" fill="#102A36" filter="url(#shadow)"/>
+  <rect x="816" y="86" width="420" height="788" rx="30" fill="#F4F7F7"/>
+  <rect x="970" y="98" width="112" height="24" rx="12" fill="#102A36"/>
+  <g clip-path="url(#settingsClip)">
+    <rect x="816" y="86" width="420" height="788" fill="#F4F7F7"/>
+    <path d="M844 157h18" stroke="#45616A" stroke-width="2" stroke-linecap="round"/>
+    <path d="M848 151l-6 6 6 6" fill="none" stroke="#45616A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="882" y="145" font-family="PingFang SC, sans-serif" font-size="11" font-weight="700" letter-spacing="1.4" fill="#087F7B">QUICKSAVE</text>
+    <text x="882" y="171" font-family="PingFang SC, sans-serif" font-size="22" font-weight="700" fill="#102A36">设置</text>
+
+    <text x="840" y="218" font-family="PingFang SC, sans-serif" font-size="18" font-weight="700" fill="#102A36">保存目标文件</text>
+    <path d="M1018 214h178" stroke="#C5D2D4"/>
+    <rect x="840" y="242" width="372" height="104" rx="20" fill="#FFFFFF" stroke="#C5D2D4"/>
+    <text x="858" y="270" font-family="PingFang SC, sans-serif" font-size="11" fill="#45616A">当前文件：</text>
+    <text x="858" y="296" font-family="monospace" font-size="13" font-weight="700" fill="#102A36">quicksave.txt</text>
+    <text x="858" y="318" font-family="PingFang SC, sans-serif" font-size="11" fill="#45616A">文字会以时间戳追加到文件末尾</text>
+    <rect x="840" y="358" width="372" height="42" rx="21" fill="#FFFFFF" stroke="#087F7B"/>
+    <text x="968" y="384" font-family="PingFang SC, sans-serif" font-size="13" font-weight="700" fill="#087F7B">重新选择文件</text>
+
+    <text x="840" y="454" font-family="PingFang SC, sans-serif" font-size="18" font-weight="700" fill="#102A36">全局悬浮窗</text>
+    <path d="M986 450h210" stroke="#C5D2D4"/>
+    <rect x="840" y="478" width="372" height="86" rx="20" fill="#FFFFFF" stroke="#C5D2D4"/>
+    <text x="858" y="510" font-family="PingFang SC, sans-serif" font-size="14" font-weight="700" fill="#102A36">启用全局悬浮窗</text>
+    <text x="858" y="534" font-family="PingFang SC, sans-serif" font-size="11" fill="#45616A">在其他应用上层显示快捷操作</text>
+    <rect x="1148" y="504" width="44" height="26" rx="13" fill="#087F7B"/>
+    <circle cx="1179" cy="517" r="9" fill="#FFFFFF"/>
+
+    <text x="840" y="618" font-family="PingFang SC, sans-serif" font-size="18" font-weight="700" fill="#102A36">分类管理</text>
+    <path d="M946 614h250" stroke="#C5D2D4"/>
+    <rect x="840" y="642" width="372" height="116" rx="20" fill="#FFFFFF" stroke="#C5D2D4"/>
+    <text x="860" y="674" font-family="sans-serif" font-size="18" fill="#45616A">⠿</text>
+    <text x="890" y="676" font-family="PingFang SC, sans-serif" font-size="14" font-weight="700" fill="#102A36">工作</text>
+    <text x="1086" y="676" font-family="PingFang SC, sans-serif" font-size="12" fill="#087F7B">重命名</text>
+    <text x="1144" y="676" font-family="PingFang SC, sans-serif" font-size="12" fill="#B94D3D">删除</text>
+    <path d="M858 694h336" stroke="#E7EFF0"/>
+    <text x="860" y="728" font-family="sans-serif" font-size="18" fill="#45616A">⠿</text>
+    <text x="890" y="730" font-family="PingFang SC, sans-serif" font-size="14" font-weight="700" fill="#102A36">学习</text>
+    <text x="1086" y="730" font-family="PingFang SC, sans-serif" font-size="12" fill="#087F7B">重命名</text>
+    <text x="1144" y="730" font-family="PingFang SC, sans-serif" font-size="12" fill="#B94D3D">删除</text>
+    <rect x="840" y="778" width="372" height="42" rx="21" fill="#FFFFFF" stroke="#087F7B"/>
+    <text x="976" y="804" font-family="PingFang SC, sans-serif" font-size="13" font-weight="700" fill="#087F7B">＋ 新增分类</text>
+  </g>
+
+  <text x="414" y="925" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="14" font-weight="700" fill="#102A36">首页 · 核心操作</text>
+  <text x="1026" y="925" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="14" font-weight="700" fill="#102A36">设置页 · 配置与管理</text>
+</svg>
