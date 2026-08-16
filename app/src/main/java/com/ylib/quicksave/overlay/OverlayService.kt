@@ -1,13 +1,17 @@
 package com.ylib.quicksave.overlay
 
 import android.app.Service
+import android.content.ClipboardManager
 import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.RippleDrawable
 import android.os.Build
 import android.os.IBinder
 import android.util.DisplayMetrics
@@ -17,10 +21,13 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import com.ylib.quicksave.app.QuickSaveApplication
+import com.ylib.quicksave.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -39,8 +46,14 @@ class OverlayService : Service() {
 
     companion object {
         const val ACTION_STOP = "com.ylib.quicksave.overlay.STOP"
-        private const val HANDLE_W_DP = 14
-        private const val HANDLE_H_DP = 54
+        private const val HANDLE_W_DP = 8
+        private const val HANDLE_H_DP = 64
+        private const val HANDLE_TOUCH_W_DP = 48
+        private const val ACTION_W_DP = 92
+        private const val ACTION_H_DP = 76
+        private const val PANEL_ALPHA = 82 // #173942 at 32%
+        private const val PANEL_STROKE_ALPHA = 46 // #D7E3E5 at 18%
+        private const val ACTION_ALPHA = 199 // #087F7B at 78%
         private const val TAG = "OverlayService"
         // 悬浮窗必须绕过系统栏 inset-fit，否则 gravity=TOP|LEFT, x=0 的窗口会被系统按
         // fitTypes=STATUS_BARS/NAVIGATION_BARS 收进"安全区"里定位。安全区的偏移量在竖屏
@@ -58,13 +71,16 @@ class OverlayService : Service() {
 
     private var rootView: FrameLayout? = null
     private var handleView: View? = null
+    private var handleVisualView: View? = null
     private var panelView: LinearLayout? = null
-    private var recordButton: Button? = null
+    private var recordButton: FrameLayout? = null
+    private var recordButtonLabel: TextView? = null
     private var redDot: View? = null
     private lateinit var params: WindowManager.LayoutParams
 
     private var expanded = false
     private var currentEdge = OverlayEdge.RIGHT
+    private var clipboardSaving = false
     // 防止 Service.onConfigurationChanged 与 ComponentCallbacks2 两条路径同时触发导致重复 remove+add
     @Volatile private var relayouting = false
 
@@ -242,41 +258,43 @@ class OverlayService : Service() {
         // 把贴边方向映射反，导致按钮看起来“没贴边”。
         if (edge == OverlayEdge.LEFT) Gravity.LEFT else Gravity.RIGHT
 
-    private fun buildHandleView(): View = View(this).apply {
-        layoutParams = FrameLayout.LayoutParams(dp(HANDLE_W_DP), dp(HANDLE_H_DP))
-        background = GradientDrawable().apply {
-            cornerRadius = dp(8).toFloat()
-            setColor(Color.argb(140, 80, 140, 255))
+    private fun buildHandleView(): View {
+        val visual = View(this).apply {
+            layoutParams = FrameLayout.LayoutParams(dp(HANDLE_W_DP), dp(HANDLE_H_DP)).apply {
+                gravity = Gravity.CENTER_VERTICAL or handleVisualGravity()
+            }
+            background = buildHandleBackground()
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        }
+        handleVisualView = visual
+        return FrameLayout(this).apply {
+            layoutParams = FrameLayout.LayoutParams(dp(HANDLE_TOUCH_W_DP), dp(HANDLE_H_DP))
+            isClickable = true
+            isFocusable = true
+            contentDescription = "展开悬浮窗"
+            setOnClickListener { toggle() }
+            addView(visual)
         }
     }
 
     private fun buildPanelView(): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         setPadding(dp(8), dp(8), dp(8), dp(8))
-        background = GradientDrawable().apply {
-            cornerRadius = dp(14).toFloat()
-            setColor(Color.argb(245, 28, 34, 46))
-        }
-        addView(buildPanelButton("文字输入") {
+        background = buildPanelBackground()
+        addView(buildPanelAction(R.drawable.ic_content_paste, "保存剪切板") {
+            onClipboardSaveClicked()
+        }.container)
+        addView(buildPanelAction(R.drawable.ic_edit, "文字输入") {
             collapse()
             launchInputActivity()
-        })
-        val recBtn = buildPanelButton("录音") {
+        }.container)
+        val recAction = buildPanelAction(R.drawable.ic_mic, "录音") {
             collapse()
             onRecordClicked()
         }
-        recBtn.apply {
-            maxLines = 1
-            fontFeatureSettings = "tnum" // 等宽数字，计时更新不改变字宽
-            // 固定宽度槽位：按最长态实测，避免计时引起面板重排（抖动）
-            val longest = "录音中 00:00"
-            val contentWidth = paint.measureText(longest).toInt()
-            val lp = layoutParams as LinearLayout.LayoutParams
-            lp.width = contentWidth + dp(28)
-            layoutParams = lp
-        }
-        recordButton = recBtn
-        addView(recBtn)
+        recordButton = recAction.container
+        recordButtonLabel = recAction.label
+        addView(recAction.container)
     }
 
     private fun launchInputActivity() {
@@ -285,18 +303,93 @@ class OverlayService : Service() {
         startActivity(intent)
     }
 
-    private fun buildPanelButton(label: String, onClick: () -> Unit): Button =
-        Button(this).apply {
-            text = label
-            isAllCaps = false
-            setOnClickListener { onClick() }
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).also {
-                it.marginStart = dp(4)
-                it.marginEnd = dp(4)
+    private data class PanelAction(
+        val container: FrameLayout,
+        val label: TextView
+    )
+
+    private fun buildPanelAction(
+        iconRes: Int,
+        label: String,
+        onClick: () -> Unit
+    ): PanelAction {
+        val icon = ImageView(this).apply {
+            setImageResource(iconRes)
+            imageTintList = ColorStateList.valueOf(Color.WHITE)
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            layoutParams = LinearLayout.LayoutParams(dp(24), dp(24)).apply {
+                bottomMargin = dp(4)
             }
+        }
+        val labelView = TextView(this).apply {
+            text = label
+            textSize = 11f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            maxLines = 1
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            addView(icon)
+            addView(labelView)
+        }
+        val container = FrameLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(dp(ACTION_W_DP), dp(ACTION_H_DP)).apply {
+                marginStart = dp(4)
+                marginEnd = dp(4)
+            }
+            background = buildActionBackground()
+            isClickable = true
+            isFocusable = true
+            contentDescription = label
+            setOnClickListener { onClick() }
+            addView(
+                content,
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                )
+            )
+        }
+        return PanelAction(container, labelView)
+    }
+
+    private fun buildPanelBackground(): Drawable = GradientDrawable().apply {
+        cornerRadius = dp(20).toFloat()
+        setColor(Color.argb(PANEL_ALPHA, 23, 57, 66))
+        setStroke(dp(1), Color.argb(PANEL_STROKE_ALPHA, 215, 227, 229))
+    }
+
+    private fun buildActionBackground(color: Int = Color.argb(ACTION_ALPHA, 8, 127, 123)): Drawable {
+        val content = GradientDrawable().apply {
+            cornerRadius = dp(14).toFloat()
+            setColor(color)
+        }
+        val mask = GradientDrawable().apply {
+            cornerRadius = dp(14).toFloat()
+            setColor(Color.WHITE)
+        }
+        return RippleDrawable(
+            ColorStateList.valueOf(Color.argb(52, 255, 255, 255)),
+            content,
+            mask
+        )
+    }
+
+    private fun buildHandleBackground(isRecording: Boolean = false): GradientDrawable =
+        GradientDrawable().apply {
+            cornerRadius = dp(HANDLE_W_DP / 2).toFloat()
+            setColor(
+                if (isRecording) Color.argb(170, 255, 70, 70)
+                else Color.argb(PANEL_ALPHA, 23, 57, 66)
+            )
         }
 
     // --- 触摸：拖拽 vs 点击 ---
@@ -329,7 +422,7 @@ class OverlayService : Service() {
                 }
                 MotionEvent.ACTION_UP -> {
                     if (!moved) {
-                        toggle()
+                        handle.performClick()
                     } else {
                         snapToNearestEdge(event.rawX)
                         persistPosition(handle)
@@ -351,7 +444,18 @@ class OverlayService : Service() {
         currentEdge = OverlayPositionCalculator.nearestEdge(rawX.roundToInt(), screenWidth)
         params.gravity = Gravity.TOP or edgeGravity(currentEdge)
         params.x = 0
+        alignHandleVisual()
         windowManager.updateViewLayout(rootView, params)
+    }
+
+    private fun handleVisualGravity() =
+        if (currentEdge == OverlayEdge.LEFT) Gravity.START else Gravity.END
+
+    private fun alignHandleVisual() {
+        val visual = handleVisualView ?: return
+        val lp = visual.layoutParams as? FrameLayout.LayoutParams ?: return
+        lp.gravity = Gravity.CENTER_VERTICAL or handleVisualGravity()
+        visual.layoutParams = lp
     }
 
     private fun persistPosition(handle: View) {
@@ -400,6 +504,49 @@ class OverlayService : Service() {
         }
     }
 
+    private fun onClipboardSaveClicked() {
+        if (clipboardSaving) return
+
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val text = runCatching {
+            clipboard.primaryClip
+                ?.takeIf { it.itemCount > 0 }
+                ?.getItemAt(0)
+                ?.text
+                ?.toString()
+        }.getOrNull()?.takeIf { it.isNotBlank() }
+
+        if (text == null) {
+            Toast.makeText(this, "剪切板为空，请先复制文字", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        clipboardSaving = true
+        collapse()
+        scope.launch {
+            val result = runCatching {
+                val category = clipRepository().getSelectedCategory().first()
+                clipRepository().saveEntry(text, category).getOrThrow()
+            }
+            clipboardSaving = false
+            val exception = result.exceptionOrNull()
+            val message = when {
+                result.isSuccess -> "已保存剪切板内容"
+                exception is IllegalStateException -> "请先在设置中选择保存文件"
+                exception is SecurityException -> "文件无写入权限，请重新选择"
+                else -> "保存失败：${exception?.message ?: "未知错误"}"
+            }
+            Toast.makeText(
+                this@OverlayService,
+                message,
+                if (result.isSuccess) Toast.LENGTH_SHORT else Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun clipRepository() =
+        (application as QuickSaveApplication).clipRepository
+
     private fun observeRecordingState() {
         scope.launch {
             RecordingController.state.collectLatest { st ->
@@ -409,11 +556,16 @@ class OverlayService : Service() {
     }
 
     private fun applyRecordingVisual(isRecording: Boolean, seconds: Int) {
-        (handleView?.background as? GradientDrawable)?.setColor(
-            if (isRecording) Color.argb(170, 255, 70, 70) else Color.argb(140, 80, 140, 255)
+        (handleVisualView?.background as? GradientDrawable)?.setColor(
+            if (isRecording) Color.argb(170, 255, 70, 70)
+            else Color.argb(PANEL_ALPHA, 23, 57, 66)
         )
         redDot?.visibility = if (isRecording) View.VISIBLE else View.GONE
-        recordButton?.text = if (isRecording) "录音中 ${formatElapsed(seconds)}" else "录音"
+        recordButton?.background = buildActionBackground(
+            if (isRecording) Color.argb(170, 255, 70, 70)
+            else Color.argb(ACTION_ALPHA, 8, 127, 123)
+        )
+        recordButtonLabel?.text = if (isRecording) "录音中 ${formatElapsed(seconds)}" else "录音"
     }
 
     private fun formatElapsed(seconds: Int): String {
