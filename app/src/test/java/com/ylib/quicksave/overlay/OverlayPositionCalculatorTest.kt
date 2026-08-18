@@ -1,4 +1,4 @@
-package com.ylib.quicksave.overlay
+﻿package com.ylib.quicksave.overlay
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -18,6 +18,26 @@ class OverlayPositionCalculatorTest {
     @Test
     fun `nearestEdge at exact midpoint returns RIGHT`() {
         assertEquals(OverlayEdge.RIGHT, OverlayPositionCalculator.nearestEdge(540, 1080))
+    }
+
+    @Test
+    fun `clampX keeps dragged window within screen`() {
+        assertEquals(0, OverlayPositionCalculator.clampX(-50, viewWidth = 100, screenWidth = 1080))
+        assertEquals(980, OverlayPositionCalculator.clampX(1200, viewWidth = 100, screenWidth = 1080))
+        assertEquals(500, OverlayPositionCalculator.clampX(500, viewWidth = 100, screenWidth = 1080))
+    }
+
+    @Test
+    fun `windowLeftForPointer preserves finger offset while dragging`() {
+        assertEquals(380, OverlayPositionCalculator.windowLeftForPointer(500, 120, 1080, 100))
+        assertEquals(0, OverlayPositionCalculator.windowLeftForPointer(50, 120, 1080, 100))
+        assertEquals(980, OverlayPositionCalculator.windowLeftForPointer(1200, 120, 1080, 100))
+    }
+
+    @Test
+    fun `edgeWindowLeft returns physical left coordinate for edge`() {
+        assertEquals(0, OverlayPositionCalculator.edgeWindowLeft(OverlayEdge.LEFT, 1080, 100))
+        assertEquals(980, OverlayPositionCalculator.edgeWindowLeft(OverlayEdge.RIGHT, 1080, 100))
     }
 
     @Test
@@ -41,7 +61,7 @@ class OverlayPositionCalculatorTest {
     }
 
     @Test
-    fun `ratioToY converts fraction to pixel`() {
+    fun `ratioToY converts fraction to pixels`() {
         assertEquals(480, OverlayPositionCalculator.ratioToY(0.25f, 1920))
     }
 
@@ -67,15 +87,12 @@ class OverlayPositionCalculatorTest {
 
     @Test
     fun `ratioToY restores equivalent position across orientation change`() {
-        // 竖屏高 2400px，把手顶部 y=1200，记录为高度比例 0.5
         val ratio = OverlayPositionCalculator.yToRatio(1200, 2400)
-        // 旋转横屏后可视高度变为 1080px，按同一比例换算应回到等比例位置
         assertEquals(540, OverlayPositionCalculator.ratioToY(ratio, 1080))
     }
 
     @Test
     fun `ratioToY and yToRatio round-trip preserves ratio within new bounds`() {
-        // 任意像素位置 → 比例 → 新屏高像素，比例应保持一致
         val ratio = OverlayPositionCalculator.yToRatio(800, 1920)
         val restoredRatio = OverlayPositionCalculator.yToRatio(
             OverlayPositionCalculator.ratioToY(ratio, 1080), 1080
