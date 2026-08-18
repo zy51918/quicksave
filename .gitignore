@@ -1,23 +1,29 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
-
-# Claude Code / superpowers plugin scratch space
-.superpowers/
+.gradle/
+.idea/
 .kotlin/
+build/
+*.iml
+.vscode/
+.venv
+
+*.local.*
+local.properties
 
 # Signing artifacts (never commit keystores)
 *.keystore
 *.jks
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git worktrees for isolated feature work
+.worktrees/
+
+
+# 本地 Agent 工作目录
+.claude/
+.codex/
+
+# superpowers working directory
+.superpowers/
