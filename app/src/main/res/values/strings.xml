@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Quick Save</string>
+    <string name="share_saved">已保存</string>
+    <string name="share_error_no_target_file">尚未设置保存文件</string>
+    <string name="share_error_unsupported_content">不支持的分享内容</string>
+    <string name="share_error_empty_content">分享内容为空</string>
+    <string name="share_error_generic">保存失败</string>
 </resources>
