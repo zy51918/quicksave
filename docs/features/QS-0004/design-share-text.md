@@ -1,5 +1,8 @@
 ﻿# QS-0004 跨应用文本分享自动保存设计
 
+> 归档说明：本文为迭代设计文档。当前实现状态以 [`docs/superpowers/specs/2026-08-18-qs-0004-share-text.md`](../../superpowers/specs/2026-08-18-qs-0004-share-text.md) 为准。
+> 归档日期：2026-08-18
+
 ## 1. 背景
 
 QuickSave 当前支持从剪贴板和手动输入保存文本。用户希望在其他 Android App 中选择“分享”后，直接将文本保存到 QuickSave 配置的目标文件中，避免复制、切换应用和再次点击保存。

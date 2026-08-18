@@ -1,7 +1,7 @@
 # QuickSave — 产品需求文档（PRD）
 
-> 版本：1.3
-> 日期：2026-06-11
+> 版本：1.4
+> 日期：2026-08-18
 > 作者：产品经理
 
 ---
@@ -71,6 +71,16 @@ QuickSave 是一款 Android 工具类应用，让用户随时将剪切板中的�
 
 ---
 
+### 3.5 跨应用文本分享自动保存（QS-0004）
+
+| # | 用户故事 | 验收条件 |
+|---|---------|---------|
+| US-S01 | 作为用户，我希望在其他 App 选择文本后通过系统分享面板选择 QuickSave，文本即可自动保存。 | QuickSave 出现在 `ACTION_SEND` + `text/plain` 分享目标中；无需进入编辑页或再次点击保存 |
+| US-S02 | 作为用户，我希望分享保存沿用当前选中的分类。 | 使用 DataStore 中的 selectedCategory；未选择分类时按无分类格式保存 |
+| US-S03 | 作为用户，我希望分享保存成功或失败后回到原 App，而不是被带到 QuickSave 主页。 | Toast 显示结果后结束分享接收页；成功和失败均不导航 `MainActivity` |
+| US-S04 | 作为用户，我希望不支持的图片、文件或多条分享不会被误保存。 | 拒绝 `ACTION_SEND_MULTIPLE`、`EXTRA_STREAM`、Uri ClipData、多 item ClipData、图片/文件 MIME 和仅 HTML 内容 |
+
+> 当前状态：已实现并合入 `main`（2026-08-18）。当前规范：[`docs/superpowers/specs/2026-08-18-qs-0004-share-text.md`](superpowers/specs/2026-08-18-qs-0004-share-text.md)
 ## 四、功能范围
 
 ### 4.1 已交付（MVP）
@@ -118,7 +128,18 @@ QuickSave 是一款 Android 工具类应用，让用户随时将剪切板中的�
 > 设计文档：[`docs/features/QS-0003/design-floating-window.md`](features/QS-0003/design-floating-window.md) · 发布于 v1.3（2026-06-11）
 > 单条常驻通知：悬浮窗服务降级为非前台、由剪贴板常驻服务保活，应用常驻通知收成一条；录音时临时增加一条录音通知，停止即消失。
 
-### 4.5 不在当前范围
+### 4.5 已交付（跨应用文本分享 v1.4 — QS-0004）
+
+| 功能 | 描述 |
+|------|------|
+| 系统分享入口 | 注册 `ACTION_SEND` + `text/plain`，QuickSave 出现在 Android 文本分享面板 |
+| 自动保存 | 接收单条纯文本后直接追加到目标文件，不进入编辑页 |
+| 分类复用 | 读取当前 selectedCategory；无分类时沿用无分类保存格式 |
+| 载荷边界 | 拒绝 `ACTION_SEND_MULTIPLE`、`EXTRA_STREAM`、Uri ClipData、多 item ClipData 和非纯文本 MIME |
+| 结果反馈 | 成功或失败 Toast 后返回原 App，不打开 QuickSave 主页 |
+
+> 归档规范：[`docs/superpowers/specs/2026-08-18-qs-0004-share-text.md`](superpowers/specs/2026-08-18-qs-0004-share-text.md) · 合入 `main`：2026-08-18
+### 4.6 不在当前范围
 
 - 剪切板自动监听（复制即自动保存）
 - 悬浮窗自定义按钮（用户自定义 toggle / 启动其他 App）
@@ -225,6 +246,25 @@ Snackbar 显示「文件内容已清空」
 
 ---
 
+### 流程 G：跨应用文本分享（QS-0004）
+
+```
+其他 App 选择一段文本
+       ↓
+Android 分享面板选择 QuickSave
+       ↓
+校验 ACTION_SEND / text/plain / 单条纯文本载荷
+       ↓
+读取当前 selectedCategory
+       ↓
+追加写入目标文件
+       ↓
+Toast「已保存」或错误原因
+       ↓
+关闭分享接收页，返回原 App
+```
+
+---
 ## 六、边界条件 & 异常处理
 
 | 场景 | 期望行为 |
@@ -233,6 +273,11 @@ Snackbar 显示「文件内容已清空」
 | 未配置目标文件 | 主页提示引导用户前往设置选择文件 |
 | SAF 权限丢失（重启后） | 保存时提示「文件无写入权限，请重新选择」 |
 | 文件写入失败 | Snackbar 显示具体错误信息 |
+| 分享文本为空或仅空白 | Toast「分享内容为空」，结束分享接收页并返回原 App |
+| 分享 Action/MIME 不支持 | Toast「不支持的分享内容」，结束分享接收页并返回原 App |
+| 分享携带 `EXTRA_STREAM`、Uri 或多 item ClipData | 拒绝保存，Toast「不支持的分享内容」并返回原 App |
+| 分享未配置目标文件 | Toast「尚未设置保存文件」，不打开 QuickSave 主页 |
+| 分享保存成功 | Toast「已保存」，结束接收页并返回原 App |
 | 分类名为空 | 新增/重命名对话框「确定」按钮禁用 |
 | 分类名与已有重复 | 对话框显示内联错误「分类名已存在」 |
 | 删除当前选中分类 | selectedCategory 同步重置为 null |
@@ -265,5 +310,5 @@ Snackbar 显示「文件内容已清空」
 
 | 指标 | 目标 |
 |------|------|
-| 核心流程步骤 | 从复制到保存完成，操作步骤 ≤ 3 步 |
+| 核心流程步骤 | 从复制或分享文本到保存完成，操作步骤 ≤ 3 步 |
 | 可靠性 | 文件写入成功率 100%（权限正常情况下） |
