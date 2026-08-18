@@ -47,6 +47,60 @@ class ShareContentParserTest {
     }
 
     @Test
+    fun `rejects extra stream payload`() {
+        assertEquals(
+            ShareParseResult.Unsupported,
+            ShareContentParser.parse(
+                action = Intent.ACTION_SEND,
+                mimeType = "text/plain",
+                text = "text",
+                hasExtraStream = true
+            )
+        )
+    }
+
+    @Test
+    fun `rejects uri clip data payload`() {
+        assertEquals(
+            ShareParseResult.Unsupported,
+            ShareContentParser.parse(
+                action = Intent.ACTION_SEND,
+                mimeType = "text/plain",
+                text = "text",
+                hasUriClipData = true
+            )
+        )
+    }
+
+    @Test
+    fun `rejects multiple clip data items`() {
+        assertEquals(
+            ShareParseResult.Unsupported,
+            ShareContentParser.parse(
+                action = Intent.ACTION_SEND,
+                mimeType = "text/plain",
+                text = "text",
+                hasMultipleClipItems = true
+            )
+        )
+    }
+
+    @Test
+    fun `accepts normal text clip data when all payload flags are false`() {
+        assertEquals(
+            ShareParseResult.Success("text"),
+            ShareContentParser.parse(
+                action = Intent.ACTION_SEND,
+                mimeType = "text/plain",
+                text = "text",
+                hasExtraStream = false,
+                hasUriClipData = false,
+                hasMultipleClipItems = false
+            )
+        )
+    }
+
+    @Test
     fun `rejects missing or blank text`() {
         assertEquals(
             ShareParseResult.Empty,

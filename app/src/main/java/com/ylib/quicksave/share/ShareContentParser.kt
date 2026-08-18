@@ -12,9 +12,18 @@ object ShareContentParser {
     fun parse(
         action: String?,
         mimeType: String?,
-        text: CharSequence?
+        text: CharSequence?,
+        hasExtraStream: Boolean = false,
+        hasUriClipData: Boolean = false,
+        hasMultipleClipItems: Boolean = false
     ): ShareParseResult {
-        if (action != Intent.ACTION_SEND || mimeType != "text/plain") {
+        if (
+            action != Intent.ACTION_SEND ||
+            mimeType != "text/plain" ||
+            hasExtraStream ||
+            hasUriClipData ||
+            hasMultipleClipItems
+        ) {
             return ShareParseResult.Unsupported
         }
 

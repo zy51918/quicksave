@@ -1,6 +1,9 @@
 ﻿package com.ylib.quicksave.share
 
+import android.content.ClipData
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
@@ -15,17 +18,96 @@ import org.junit.runner.RunWith
 class ShareReceiverActivityTest {
 
     @Test
-    fun unsupportedMime_finishesShareReceiverWithoutOpeningHome() {
-        val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val context = instrumentation.targetContext
-        val intent = Intent(context, ShareReceiverActivity::class.java).apply {
-            action = Intent.ACTION_SEND
-            type = "text/html"
-            putExtra(Intent.EXTRA_TEXT, "<p>不支持</p>")
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    fun manifestDiscoversShareReceiverForPlainTextSend() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val intent = Intent(Intent.ACTION_SEND).setType("text/plain")
+
+        val matches = context.packageManager.queryIntentActivities(
+            intent,
+            PackageManager.MATCH_DEFAULT_ONLY
+        )
+
+        assertTrue(
+            matches.any {
+                it.activityInfo.packageName == context.packageName &&
+                    it.activityInfo.name == ShareReceiverActivity::class.java.name
+            }
+        )
+    }
+
+    @Test
+    fun validPlainTextWithoutTargetFinishesWithoutOpeningHome() {
+        val activity = launchReceiver(
+            Intent.ACTION_SEND,
+            "text/plain",
+            "没有目标文件"
+        )
+
+        assertFinishesWithoutOpeningHome(activity)
+    }
+
+    @Test
+    fun mixedStreamPayloadFinishesUnsupportedWithoutSavingOrOpeningHome() {
+        val intent = baseIntent().apply {
+            putExtra(Intent.EXTRA_STREAM, Uri.parse("content://example/stream"))
         }
 
-        val activity = instrumentation.startActivitySync(intent)
+        val activity = launchReceiver(intent)
+
+        assertFinishesWithoutOpeningHome(activity)
+    }
+
+    @Test
+    fun mixedUriClipDataPayloadFinishesUnsupportedWithoutSavingOrOpeningHome() {
+        val intent = baseIntent().apply {
+            clipData = ClipData.newRawUri("shared uri", Uri.parse("content://example/clip"))
+        }
+
+        val activity = launchReceiver(intent)
+
+        assertFinishesWithoutOpeningHome(activity)
+    }
+
+    @Test
+    fun unsupportedMime_finishesShareReceiverWithoutOpeningHome() {
+        val activity = launchReceiver(
+            Intent.ACTION_SEND,
+            "text/html",
+            "<p>不支持</p>"
+        )
+
+        assertFinishesWithoutOpeningHome(activity)
+    }
+
+    private fun launchReceiver(
+        action: String,
+        mimeType: String,
+        text: String
+    ): ShareReceiverActivity = launchReceiver(
+        baseIntent(action, mimeType, text)
+    )
+
+    private fun launchReceiver(intent: Intent): ShareReceiverActivity {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        return instrumentation.startActivitySync(intent) as ShareReceiverActivity
+    }
+
+    private fun baseIntent(
+        action: String = Intent.ACTION_SEND,
+        mimeType: String = "text/plain",
+        text: String = "有效分享文本"
+    ): Intent {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        return Intent(context, ShareReceiverActivity::class.java).apply {
+            this.action = action
+            type = mimeType
+            putExtra(Intent.EXTRA_TEXT, text)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+    }
+
+    private fun assertFinishesWithoutOpeningHome(activity: ShareReceiverActivity) {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
         instrumentation.waitForIdleSync()
 
         var hasResumedMainActivity = false

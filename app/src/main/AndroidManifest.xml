@@ -35,7 +35,6 @@
             android:name=".share.ShareReceiverActivity"
             android:exported="true"
             android:excludeFromRecents="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.QuickSave.Transparent">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

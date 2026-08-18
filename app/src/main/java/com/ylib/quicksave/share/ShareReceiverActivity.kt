@@ -5,7 +5,10 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.StringRes
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.ylib.quicksave.R
 import com.ylib.quicksave.app.QuickSaveApplication
 import kotlinx.coroutines.CancellationException
@@ -14,6 +17,7 @@ import kotlinx.coroutines.launch
 class ShareReceiverActivity : ComponentActivity() {
 
     private var handled = false
+    private var resultShown = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,44 +33,67 @@ class ShareReceiverActivity : ComponentActivity() {
         if (handled) return
         handled = true
 
-        when (
-            val result = ShareContentParser.parse(
-                action = intent.action,
-                mimeType = intent.type,
-                text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)
-            )
-        ) {
-            is ShareParseResult.Success -> save(result.text)
-            ShareParseResult.Empty -> finishWithToast(
-                ShareMessage.Resource(R.string.share_error_empty_content)
-            )
-            ShareParseResult.Unsupported -> finishWithToast(
-                ShareMessage.Resource(R.string.share_error_unsupported_content)
-            )
+        try {
+            when (
+                val result = ShareContentParser.parse(
+                    action = intent.action,
+                    mimeType = intent.type,
+                    text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT),
+                    hasExtraStream = intent.hasExtra(Intent.EXTRA_STREAM),
+                    hasUriClipData = intent.clipData?.let { clipData ->
+                        (0 until clipData.itemCount).any { index ->
+                            clipData.getItemAt(index).uri != null
+                        }
+                    } == true,
+                    hasMultipleClipItems = intent.clipData?.itemCount?.let { it > 1 } == true
+                )
+            ) {
+                is ShareParseResult.Success -> save(result.text)
+                ShareParseResult.Empty -> finishWithToast(
+                    ShareMessage.Resource(R.string.share_error_empty_content)
+                )
+                ShareParseResult.Unsupported -> finishWithToast(
+                    ShareMessage.Resource(R.string.share_error_unsupported_content)
+                )
+            }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Throwable) {
+            finishWithToast(ShareMessage.Resource(R.string.share_error_generic))
         }
     }
 
     private fun save(text: String) {
-        val repository = (application as QuickSaveApplication).clipRepository
+        val coordinator = ShareSaveCoordinator(
+            (application as QuickSaveApplication).clipRepository
+        )
+        val viewModel = ViewModelProvider(
+            this,
+            ShareReceiverViewModel.factory(coordinator::save)
+        )[ShareReceiverViewModel::class.java]
 
         lifecycleScope.launch {
-            val result = try {
-                ShareSaveCoordinator(repository).save(text)
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                Result.failure(error)
-            }
-
-            result.fold(
-                onSuccess = {
-                    finishWithToast(ShareMessage.Resource(R.string.share_saved))
-                },
-                onFailure = { error ->
-                    finishWithToast(errorMessage(error))
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    if (state is ShareReceiverState.Completed && !resultShown) {
+                        resultShown = true
+                        showSaveResult(state.result)
+                    }
                 }
-            )
+            }
         }
+        viewModel.save(text)
+    }
+
+    private fun showSaveResult(result: Result<Unit>) {
+        result.fold(
+            onSuccess = {
+                finishWithToast(ShareMessage.Resource(R.string.share_saved))
+            },
+            onFailure = { error ->
+                finishWithToast(errorMessage(error))
+            }
+        )
     }
 
     private fun errorMessage(error: Throwable?): ShareMessage {
