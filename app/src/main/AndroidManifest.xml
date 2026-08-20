@@ -44,6 +44,12 @@
         </activity>
 
         <activity
+            android:name=".ui.ClipboardSaveActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.QuickSave.Transparent" />
+
+        <activity
             android:name=".ui.InputActivity"
             android:exported="false"
             android:excludeFromRecents="true"

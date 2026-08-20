@@ -4,7 +4,6 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.app.Service
-import android.content.ClipboardManager
 import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.Intent
@@ -41,6 +40,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import com.ylib.quicksave.recorder.RecorderService
 import com.ylib.quicksave.recorder.RecordingController
+import com.ylib.quicksave.ui.ClipboardSaveActivity
 import com.ylib.quicksave.ui.RecordPermissionActivity
 import com.ylib.quicksave.util.PermissionHelper
 import kotlin.math.abs
@@ -50,6 +50,8 @@ class OverlayService : Service() {
 
     companion object {
         const val ACTION_STOP = "com.ylib.quicksave.overlay.STOP"
+
+        internal fun clipboardSaveActivityClass() = ClipboardSaveActivity::class.java
         private const val HANDLE_W_DP = OverlayHandleSpec.WIDTH_DP
         private const val HANDLE_H_DP = 64
         private const val HANDLE_TOUCH_W_DP = OverlayHandleSpec.TOUCH_WIDTH_DP
@@ -672,45 +674,19 @@ class OverlayService : Service() {
     private fun onClipboardSaveClicked() {
         if (clipboardSaving) return
 
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val text = runCatching {
-            clipboard.primaryClip
-                ?.takeIf { it.itemCount > 0 }
-                ?.getItemAt(0)
-                ?.text
-                ?.toString()
-        }.getOrNull()?.takeIf { it.isNotBlank() }
-
-        if (text == null) {
-            Toast.makeText(this, "剪切板为空，请先复制文字", Toast.LENGTH_SHORT).show()
-            return
-        }
-
         clipboardSaving = true
         collapse()
-        scope.launch {
-            val result = runCatching {
-                val category = clipRepository().getSelectedCategory().first()
-                clipRepository().saveEntry(text, category).getOrThrow()
-            }
-            clipboardSaving = false
-            val exception = result.exceptionOrNull()
-            val message = when {
-                result.isSuccess -> "已保存剪切板内容"
-                exception is IllegalStateException -> "请先在设置中选择保存文件"
-                exception is SecurityException -> "文件无写入权限，请重新选择"
-                else -> "保存失败：${exception?.message ?: "未知错误"}"
-            }
-            Toast.makeText(
-                this@OverlayService,
-                message,
-                if (result.isSuccess) Toast.LENGTH_SHORT else Toast.LENGTH_LONG
-            ).show()
+        runCatching {
+            startActivity(
+                Intent(this, clipboardSaveActivityClass())
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        }.onFailure { error ->
+            Log.e(TAG, "Unable to launch clipboard save activity", error)
+            Toast.makeText(this, "Unable to open clipboard save", Toast.LENGTH_SHORT).show()
         }
+        clipboardSaving = false
     }
-
-    private fun clipRepository() =
-        (application as QuickSaveApplication).clipRepository
 
     private fun observeRecordingState() {
         scope.launch {
