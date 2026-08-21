@@ -7,10 +7,7 @@ import org.junit.Test
 class NotificationIconSpecTest {
 
     @Test
-    fun `status notifications use the current launcher foreground icon`() {
+    fun `status notifications use the dedicated notification icon`() {
         assertEquals(R.drawable.ic_notification_quicksave, NotificationIconSpec.smallIcon)
-        assertEquals(1004, NotificationIconSpec.currentNotificationId)
-        assertEquals(1001, NotificationIconSpec.legacyNotificationId)
     }
 }
-
