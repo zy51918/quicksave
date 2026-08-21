@@ -15,7 +15,7 @@ class ClipboardMonitorService : Service() {
 
     companion object {
         private const val CHANNEL_ID = "quicksave_channel"
-        private const val NOTIFICATION_ID = 1001
+        private const val NOTIFICATION_ID = NotificationIconSpec.currentNotificationId
     }
 
     override fun onCreate() {
@@ -54,4 +54,5 @@ class ClipboardMonitorService : Service() {
             .build()
     }
 }
+
 
