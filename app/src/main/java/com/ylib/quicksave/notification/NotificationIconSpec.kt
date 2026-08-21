@@ -5,5 +5,5 @@ import com.ylib.quicksave.R
 
 internal object NotificationIconSpec {
     @get:DrawableRes
-    val smallIcon: Int = R.drawable.ic_notification_quicksave
+    val smallIcon: Int = R.drawable.ic_launcher_foreground
 }
