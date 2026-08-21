@@ -16,6 +16,7 @@ import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.ylib.quicksave.MainActivity
+import com.ylib.quicksave.notification.NotificationIconSpec
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -203,7 +204,7 @@ class RecorderService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_btn_speak_now)
+            .setSmallIcon(NotificationIconSpec.smallIcon)
             .setContentTitle("正在录音")
             .setContentText(formatElapsed(seconds))
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -228,3 +229,4 @@ class RecorderService : Service() {
         Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
     }
 }
+
