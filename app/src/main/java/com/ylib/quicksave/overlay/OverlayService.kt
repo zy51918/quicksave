@@ -1,5 +1,6 @@
 package com.ylib.quicksave.overlay
 
+import android.annotation.SuppressLint
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
@@ -15,7 +16,9 @@ import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.RippleDrawable
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
@@ -289,8 +292,8 @@ class OverlayService : Service() {
             layoutParams = FrameLayout.LayoutParams(dp(HANDLE_TOUCH_W_DP), dp(HANDLE_H_DP))
             isClickable = true
             isFocusable = true
-            contentDescription = "展开悬浮窗"
-            setOnClickListener { toggle() }
+            contentDescription = "滑动展开悬浮窗；长按后拖动调整位置"
+            setOnClickListener { expand() }
             addView(visual)
         }
     }
@@ -426,20 +429,28 @@ class OverlayService : Service() {
             )
         }
 
-    // --- 触摸：拖拽 vs 点击 ---
+    // --- 触摸：点击不展开（防误触）；直接滑动展开面板；长按把手变大后解锁拖移（调位置/换边） ---
+    @SuppressLint("ClickableViewAccessibility") // 点击动作仅供无障碍（TalkBack 双击展开），触摸路径故意不调 performClick
     private fun attachHandleTouch(handle: View) {
         val slop = ViewConfiguration.get(this).scaledTouchSlop
+        val holdTimeoutMs = ViewConfiguration.getLongPressTimeout().toLong()
+        val handler = Handler(Looper.getMainLooper())
         var downRawX = 0f
         var downRawY = 0f
         var downTouchOffsetX = 0
         var downY = 0
         var moved = false
+        var holdArmed = false
+        val holdRunnable = Runnable {
+            holdArmed = true
+            animateHandleWidth(OverlayAnimationSpec.HOLD_SCALE, OverlayAnimationSpec.HOLD_DURATION_MS)
+        }
 
         handle.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     cancelEdgeAnimation()
-                    animateHandlePress(pressed = true)
+                    animateHandleWidth(OverlayAnimationSpec.PRESS_SCALE, OverlayAnimationSpec.PRESS_DURATION_MS)
                     val root = rootView
                     val rootWidth = root?.width?.takeIf { it > 0 }
                         ?: root?.measuredWidth?.takeIf { it > 0 }
@@ -452,14 +463,20 @@ class OverlayService : Service() {
                     downTouchOffsetX = event.rawX.roundToInt() - startLeft
                     downY = params.y
                     moved = false
+                    holdArmed = false
                     draggingHandle = false
+                    handler.postDelayed(holdRunnable, holdTimeoutMs)
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
                     val dx = event.rawX - downRawX
                     val dy = event.rawY - downRawY
-                    if (!moved && (abs(dx) > slop || abs(dy) > slop)) moved = true
-                    if (moved) {
+                    if (!moved && (abs(dx) > slop || abs(dy) > slop)) {
+                        moved = true
+                        if (!holdArmed) handler.removeCallbacks(holdRunnable)
+                    }
+                    // 长按蓄力（把手变大）后窗口才跟随手指；蓄力前的滑动不动窗口，留给"展开"判定
+                    if (moved && holdArmed) {
                         val root = rootView
                         val rootWidth = root?.width?.takeIf { it > 0 }
                             ?: root?.measuredWidth?.takeIf { it > 0 }
@@ -484,18 +501,30 @@ class OverlayService : Service() {
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    animateHandlePress(pressed = false)
-                    if (!moved) {
-                        draggingHandle = false
-                        handle.performClick()
+                    animateHandleWidth(OverlayAnimationSpec.RELEASE_SCALE, OverlayAnimationSpec.RELEASE_DURATION_MS)
+                    handler.removeCallbacks(holdRunnable)
+                    val dx = event.rawX - downRawX
+                    val dy = event.rawY - downRawY
+                    if (holdArmed) {
+                        // 蓄力拖拽：松手吸附最近边（调位置/换边）
+                        if (moved) animateToNearestEdge(event.rawX, handle) else draggingHandle = false
                     } else {
-                        animateToNearestEdge(event.rawX, handle)
+                        // 直接滑动：向内滑够距离即展开
+                        val inward = if (currentEdge == OverlayEdge.RIGHT) dx < 0 else dx > 0
+                        if (moved && inward &&
+                            abs(dx) >= dp(OverlayHandleSpec.SWIPE_OPEN_DP) &&
+                            abs(dx) > abs(dy)
+                        ) {
+                            expand()
+                        }
                     }
                     true
                 }
                 MotionEvent.ACTION_CANCEL -> {
-                    animateHandlePress(pressed = false)
+                    animateHandleWidth(OverlayAnimationSpec.RELEASE_SCALE, OverlayAnimationSpec.RELEASE_DURATION_MS)
+                    handler.removeCallbacks(holdRunnable)
                     draggingHandle = false
+                    holdArmed = false
                     params.gravity = Gravity.TOP or edgeGravity(currentEdge)
                     params.x = 0
                     runCatching { windowManager.updateViewLayout(rootView, params) }
@@ -507,17 +536,13 @@ class OverlayService : Service() {
         }
     }
 
-    private fun animateHandlePress(pressed: Boolean) {
+    private fun animateHandleWidth(scale: Float, durationMs: Long) {
         val visual = handleVisualView ?: return
         val baseWidth = dp(HANDLE_W_DP)
         val currentWidth = (visual.layoutParams as? FrameLayout.LayoutParams)?.width
             ?.takeIf { it > 0 }
             ?: baseWidth
-        val targetWidth = if (pressed) {
-            (baseWidth * OverlayAnimationSpec.PRESS_SCALE).roundToInt()
-        } else {
-            baseWidth
-        }
+        val targetWidth = (baseWidth * scale).roundToInt()
         val handleHeight = visual.height.takeIf { it > 0 } ?: dp(HANDLE_H_DP)
 
         visual.scaleX = OverlayAnimationSpec.RELEASE_SCALE
@@ -525,11 +550,7 @@ class OverlayService : Service() {
         handlePressAnimator?.cancel()
 
         handlePressAnimator = ValueAnimator.ofInt(currentWidth, targetWidth).apply {
-            duration = if (pressed) {
-                OverlayAnimationSpec.PRESS_DURATION_MS
-            } else {
-                OverlayAnimationSpec.RELEASE_DURATION_MS
-            }
+            duration = durationMs
             interpolator = DecelerateInterpolator(1.6f)
             addUpdateListener { animator ->
                 val width = animator.animatedValue as Int
@@ -633,8 +654,6 @@ class OverlayService : Service() {
     }
 
     // --- 展开 / 折叠 ---
-    private fun toggle() = if (expanded) collapse() else expand()
-
     private fun expand() {
         expanded = true
         handleView?.visibility = View.GONE

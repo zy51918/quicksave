@@ -10,6 +10,9 @@ internal object OverlayHandleSpec {
     const val NORMAL_BLUE = 185
     const val USE_ROUNDED_BACKGROUND = true
 
+    /** 直接滑动展开所需的最短内滑距离（dp），无需速度要求；长按蓄力后的拖拽不受此限制。 */
+    const val SWIPE_OPEN_DP = 48
+
     fun cornerRadiusPx(widthPx: Int, heightPx: Int): Float =
         minOf(widthPx, heightPx) / 2f
 }

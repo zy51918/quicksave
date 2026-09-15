@@ -14,6 +14,7 @@ class OverlayHandleSpecTest {
         assertEquals(185, OverlayHandleSpec.NORMAL_BLUE)
         assertEquals(180, OverlayHandleSpec.NORMAL_ALPHA)
         assertTrue("把手应使用圆角矩形背景", OverlayHandleSpec.USE_ROUNDED_BACKGROUND)
+        assertEquals(48, OverlayHandleSpec.SWIPE_OPEN_DP)
     }
 
     @Test
