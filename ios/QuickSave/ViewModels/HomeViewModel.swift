@@ -7,12 +7,11 @@ protocol ClipboardReading {
 
 struct SystemClipboardReader: ClipboardReading {
     func readString() -> String? {
-        UIPasteboard.general.string?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        guard let text = UIPasteboard.general.string,
+              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        else { return nil }
+        return text
     }
-}
-
-private extension String {
-    var nilIfEmpty: String? { isEmpty ? nil : self }
 }
 
 @MainActor
@@ -72,6 +71,17 @@ final class HomeViewModel: ObservableObject {
         targetFileConfigured = repository.targetFileBookmark != nil
         categories = repository.categories
         selectedCategory = repository.selectedCategory
+    }
+
+    func validateTargetFileAccess() {
+        guard repository.targetFileBookmark != nil else {
+            targetFileConfigured = false
+            return
+        }
+        Task { [weak self] in
+            guard let self else { return }
+            targetFileConfigured = await repository.isTargetFileAccessible()
+        }
     }
 
     func selectCategory(_ category: String?) {

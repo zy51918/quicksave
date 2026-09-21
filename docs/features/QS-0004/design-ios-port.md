@@ -17,8 +17,8 @@
 - 分类新增、重命名、删除、排序
 - 用户选择目标文本文件、security-scoped bookmark 持久化
 - 追加保存、清空文件及错误反馈
-- Share Sheet 导入文字到主 App 的待处理输入
-- App Group pending payload 一次性消费
+- Share Sheet 直接自动保存文字到当前目标文件
+- App Group 共享配置与文件 bookmark
 - App Intents / Shortcuts 提供打开 QuickSave 的系统快捷入口
 
 本阶段不实现录音、全局悬浮窗、常驻通知和后台剪切板监听。
@@ -49,7 +49,7 @@
 
 ### 3.3 Share Extension
 
-`QuickSaveShareViewController` 从 `NSExtensionItem` 的 `public.text` provider 异步提取字符串 → `SharedPayloadStore.write` 写入 App Group → Extension 显示完成状态并关闭。主 App 在 `scenePhase == .active` 时调用 `consume()`，把文字填入手动输入框并立即删除 payload。
+`ShareViewController` 要求单个 `NSExtensionItem`、单个 `public.text` provider，并拒绝 URL 或混合附件；提取文字后复用 `ClipRepositoryImpl.saveEntry`，读取 App Group 中的当前分类和目标文件 bookmark，自动保存并关闭 Extension。成功显示「已保存」，失败显示具体错误后取消 Extension。
 
 ## 四、状态模型
 

@@ -84,6 +84,7 @@ private final class MockClipRepository: ClipRepository {
 
     func setTargetFile(bookmark: Data) { targetFileBookmark = bookmark }
     func clearTargetFile() { targetFileBookmark = nil }
+    func isTargetFileAccessible() async -> Bool { targetFileBookmark != nil }
     func saveEntry(text: String, category: String?) async -> Result<Void, ClipError> {
         saveCallCount += 1
         lastText = text

@@ -3,8 +3,6 @@ import UniformTypeIdentifiers
 
 final class ShareViewController: UIViewController {
     private let statusLabel = UILabel()
-    private let saveButton = UIButton(type: .system)
-    private var sharedText: String?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,17 +17,12 @@ final class ShareViewController: UIViewController {
         titleLabel.font = .preferredFont(forTextStyle: .headline)
         titleLabel.textAlignment = .center
 
-        statusLabel.text = "正在读取分享内容…"
+        statusLabel.text = "正在保存分享内容…"
         statusLabel.textAlignment = .center
         statusLabel.numberOfLines = 0
         statusLabel.textColor = .secondaryLabel
 
-        saveButton.setTitle("导入到 QuickSave", for: .normal)
-        saveButton.titleLabel?.font = .preferredFont(forTextStyle: .headline)
-        saveButton.addTarget(self, action: #selector(save), for: .touchUpInside)
-        saveButton.isEnabled = false
-
-        let stack = UIStackView(arrangedSubviews: [titleLabel, statusLabel, saveButton])
+        let stack = UIStackView(arrangedSubviews: [titleLabel, statusLabel])
         stack.axis = .vertical
         stack.spacing = 18
         stack.alignment = .fill
@@ -44,9 +37,14 @@ final class ShareViewController: UIViewController {
 
     private func loadSharedText() {
         guard let item = extensionContext?.inputItems.first as? NSExtensionItem,
-              let provider = item.attachments?.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.plainText.identifier) })
+              extensionContext?.inputItems.count == 1,
+              let attachments = item.attachments,
+              attachments.count == 1,
+              let provider = attachments.first,
+              provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier),
+              !provider.hasItemConformingToTypeIdentifier(UTType.url.identifier)
         else {
-            finish(with: "没有可导入的文字", success: false)
+            finish(with: "不支持的分享内容", success: false)
             return
         }
 
@@ -68,33 +66,47 @@ final class ShareViewController: UIViewController {
                     text = nil
                 }
                 guard let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                    self.finish(with: "没有可导入的文字", success: false)
+                    self.finish(with: "分享内容为空", success: false)
                     return
                 }
-                self.sharedText = text
-                self.statusLabel.text = "文字已准备好，回到 QuickSave 后可保存"
-                self.saveButton.isEnabled = true
+                self.save(text)
             }
         }
     }
 
-    @objc private func save() {
-        guard let sharedText else { return }
-        do {
-            try SharedPayloadStore().write(sharedText)
-            finish(with: "已导入，打开 QuickSave 完成保存", success: true)
-        } catch {
-            finish(with: error.localizedDescription, success: false)
+    private func save(_ text: String) {
+        let preferences = AppGroupPreferencesStore(appGroupIdentifier: SharedPayloadStore.appGroupIdentifier)
+        let repository = ClipRepositoryImpl(
+            preferences: preferences,
+            files: BookmarkFileDataSource()
+        )
+        let category = repository.selectedCategory
+        Task { [weak self] in
+            let result = await repository.saveEntry(text: text, category: category)
+            await MainActor.run {
+                switch result {
+                case .success:
+                    self?.finish(with: "已保存", success: true)
+                case let .failure(error):
+                    self?.finish(with: error.errorDescription ?? "保存失败", success: false)
+                }
+            }
         }
     }
 
     private func finish(with message: String, success: Bool) {
         statusLabel.text = message
         statusLabel.textColor = success ? .systemGreen : .systemRed
-        saveButton.isEnabled = false
-        if success {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
-                self?.extensionContext?.completeRequest(returningItems: nil)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
+            guard let self else { return }
+            if success {
+                self.extensionContext?.completeRequest(returningItems: nil)
+            } else {
+                self.extensionContext?.cancelRequest(withError: NSError(
+                    domain: "QuickSave.ShareExtension",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: message]
+                ))
             }
         }
     }

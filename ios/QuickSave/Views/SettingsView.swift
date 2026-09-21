@@ -1,9 +1,12 @@
+import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @StateObject private var model: SettingsViewModel
     @State private var importingFile = false
+    @State private var exportingFile = false
+    @State private var newDocument = QuickSaveTextDocument()
     @State private var showingAddCategory = false
     @State private var categoryDraft = ""
     @State private var renamingCategory: String?
@@ -12,6 +15,15 @@ struct SettingsView: View {
 
     init(repository: ClipRepository) {
         _model = StateObject(wrappedValue: SettingsViewModel(repository: repository))
+    }
+
+    private var renameCandidate: String {
+        renameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var isRenameValid: Bool {
+        guard let oldName = renamingCategory else { return false }
+        return !renameCandidate.isEmpty && (renameCandidate == oldName || !model.categories.contains(renameCandidate))
     }
 
     var body: some View {
@@ -25,7 +37,7 @@ struct SettingsView: View {
                 } else {
                     Label("尚未设置保存文件", systemImage: "exclamationmark.triangle.fill")
                         .foregroundStyle(Color.quickSaveCoral)
-                    Button("选择保存文件") { importingFile = true }
+                    Button("选择保存文件") { exportingFile = true }
                 }
                 Text("保存的文字将追加到文件末尾，每条记录包含时间戳。")
                     .font(.footnote)
@@ -76,6 +88,9 @@ struct SettingsView: View {
         .navigationTitle("设置")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { EditButton() }
+        .task {
+            model.validateTargetFileAccess()
+        }
         .fileImporter(
             isPresented: $importingFile,
             allowedContentTypes: [.plainText],
@@ -87,6 +102,20 @@ struct SettingsView: View {
                 model.setTargetFile(bookmark: bookmark)
             } catch {
                 errorMessage = "无法选择文件：\(error.localizedDescription)"
+            }
+        }
+        .fileExporter(
+            isPresented: $exportingFile,
+            document: $newDocument,
+            contentType: .plainText,
+            defaultFilename: "quicksave.txt"
+        ) { result in
+            do {
+                let url = try result.get()
+                let bookmark = try BookmarkFileDataSource.makeBookmark(for: url)
+                model.setTargetFile(bookmark: bookmark)
+            } catch {
+                errorMessage = "无法创建文件：\(error.localizedDescription)"
             }
         }
         .alert("新增分类", isPresented: $showingAddCategory) {
@@ -109,7 +138,7 @@ struct SettingsView: View {
                 }
                 renamingCategory = nil
             }
-            .disabled(renameDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .disabled(!isRenameValid)
         } message: {
             Text("分类名不能为空或重复")
         }
@@ -121,5 +150,29 @@ struct SettingsView: View {
         } message: {
             Text(errorMessage ?? "未知错误")
         }
+    }
+}
+
+struct QuickSaveTextDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.plainText] }
+
+    var text: String
+
+    init(text: String = "") {
+        self.text = text
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        guard let data = configuration.file.regularFileContents,
+              let text = String(data: data, encoding: .utf8)
+        else {
+            self.text = ""
+            return
+        }
+        self.text = text
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: Data(text.utf8))
     }
 }

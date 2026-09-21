@@ -115,4 +115,8 @@ private actor FakeFileDataSource: FileDataSource {
         if let failure { throw failure }
         clearCount += 1
     }
+
+    func isAccessible(bookmark: Data?) async -> Bool {
+        failure == nil && bookmark != nil
+    }
 }

@@ -9,7 +9,7 @@ final class AppDependencies {
     let sharedPayloads: SharedPayloadStore
 
     private init() {
-        let preferences = UserDefaultsPreferencesStore()
+        let preferences = AppGroupPreferencesStore(appGroupIdentifier: SharedPayloadStore.appGroupIdentifier)
         let files = BookmarkFileDataSource()
         self.preferences = preferences
         self.files = files

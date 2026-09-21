@@ -10,7 +10,7 @@
 - 分类新增、重命名、删除、排序
 - 用户选择文本文件并通过 security-scoped bookmark 持久化访问
 - 追加保存、清空文件、错误反馈
-- Share Extension 导入其他 App 分享的文字
+- Share Extension 在其他 App 分享文字后直接自动保存到当前目标文件
 - App Intents / Shortcuts 打开 QuickSave 的系统快捷入口
 
 录音、全局悬浮窗、常驻通知和后台剪切板轮询暂不实现。录音需单独的后续 feature 评审。
@@ -22,7 +22,7 @@
 1. 为 `QuickSave` 与 `QuickSaveShare` targets 设置同一开发团队。
 2. 在 Signing & Capabilities 中启用 App Groups，并将 `group.com.ylib.quicksave` 替换为团队可用的 App Group（同时修改 Swift 常量和两个 entitlements）。
 3. 在真机或模拟器运行主 App；通过系统文件选择器配置目标文本文件。
-4. 在其他 App 的 Share Sheet 中启用 QuickSave，导入内容后回到主 App 点击保存。
+4. 在其他 App 的 Share Sheet 中启用 QuickSave，分享文字后会直接自动保存并返回原 App。
 
 ## 验证
 

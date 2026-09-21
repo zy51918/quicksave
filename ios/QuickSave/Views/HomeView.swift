@@ -20,7 +20,7 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     if !model.targetFileConfigured {
-                        NoFileWarningCard()
+                        NoFileWarningCard(repository: dependencies.repository)
                     }
 
                     CategoryChipRow(
@@ -77,11 +77,13 @@ struct HomeView: View {
         .task {
             model.refreshClipboard()
             model.consumeSharedPayload()
+            model.validateTargetFileAccess()
         }
         .onChange(of: scenePhase) { phase in
             guard phase == .active else { return }
             model.refreshClipboard()
             model.consumeSharedPayload()
+            model.validateTargetFileAccess()
         }
         .alert("清空保存文件", isPresented: $model.showClearConfirmation) {
             Button("取消", role: .cancel) {}
@@ -112,6 +114,8 @@ struct HomeView: View {
 }
 
 private struct NoFileWarningCard: View {
+    let repository: ClipRepository
+
     var body: some View {
         QuickSaveCard(background: Color.quickSaveCoralPale) {
             HStack(alignment: .top, spacing: 12) {
@@ -125,6 +129,11 @@ private struct NoFileWarningCard: View {
                     Text("先选择一个目标文件，QuickSave 才能把内容写进去。")
                         .font(.subheadline)
                         .foregroundStyle(Color.quickSaveInkSoft)
+                    NavigationLink("去选择文件") {
+                        SettingsView(repository: repository)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(Color.quickSaveCoral)
                 }
             }
         }

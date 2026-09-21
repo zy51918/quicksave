@@ -121,13 +121,13 @@ iOS 剪切板读取仅发生在 App 前台，避免后台访问和不必要的�
 
 ```
 Other App Share → QuickSave Share Extension
-  → 读取 NSExtensionItem / NSItemProvider public.text
-  → 写入 App Group pending payload（含文本，不含网络数据）
-  → 打开主 App（若系统允许）/ 用户回到 QuickSave 后消费 payload
-  → 复用 HomeViewModel 手动输入保存链路
+  → 校验单个 NSExtensionItem / 单个 public.text provider
+  → 读取 App Group 中的目标文件 bookmark 与 selectedCategory
+  → 复用 ClipRepositoryImpl.saveEntry 自动保存
+  → 显示结果并关闭 Extension，返回原 App
 ```
 
-Extension 只负责导入文字和展示轻量确认；无法保证在所有宿主 App 中自动拉起主 App，因此 UI 必须提供「已保存到待处理内容」的确定反馈，并在主 App 激活时消费 pending payload。不可把 Share Extension 当作 Android 常驻悬浮窗的等价物。
+Share Extension 直接复用主 App 的共享配置和保存格式，不打开主 App、不写入 pending 文本；这与 Android 的自动保存行为保持一致。
 
 ## 六、状态与错误模型
 
@@ -151,7 +151,7 @@ Extension 只负责导入文字和展示轻量确认；无法保证在所有宿�
 - `HomeViewModel` 和 Repository 方法使用 Swift concurrency；文件写入在 actor（`BookmarkFileDataSource`）内串行，避免同时追加导致行交错。
 - `PreferencesStore` 在 MainActor 上发布 UI 状态，底层 UserDefaults 操作保持轻量。
 - security-scoped URL 每次 I/O 成对调用 `startAccessing...` / `stopAccessing...`；bookmark stale 时返回 `.targetFileUnavailable`，不静默覆盖。
-- Share Extension 与主 App 使用 App Group 最小共享数据；消费 pending payload 后立即删除，避免剪切板内容长期残留。
+- Share Extension 与主 App 使用 App Group 共享配置和文件 bookmark；Share Extension 不长期保存分享原文。
 - 不实现后台剪切板轮询、不申请无关权限、不使用网络或私有 API。
 
 ## 八、备选方案与取舍
@@ -170,6 +170,6 @@ Extension 只负责导入文字和展示轻量确认；无法保证在所有宿�
 - `EntryFormatter` 两种分类格式、固定时区和换行结尾。
 - `ClipRepositoryImpl` 未配置文件、bookmark 无权限、追加、清空、写入失败映射。
 - `HomeViewModel` 空白输入守卫、成功清空、失败保留、两路保存状态独立、分类有效性过滤。
-- Share Extension 的 public.text 提取与 pending payload 一次性消费。
+- Share Extension 的 `public.text` 提取、混合附件拒绝、自动保存和失败关闭。
 
 真机验证（阶段 B/测试阶段）：文件选择后重启、Files 权限撤销、Share Sheet 导入和 VoiceOver。

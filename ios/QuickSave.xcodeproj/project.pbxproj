@@ -25,6 +25,10 @@
 		A1000000000000000000000F /* HomeViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* HomeViewModelTests.swift */; };
 		A10000000000000000000010 /* SharedPayloadStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* SharedPayloadStoreTests.swift */; };
 		A10000000000000000000011 /* SharedPayloadStore.swift in Share Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* SharedPayloadStore.swift */; };
+		A10000000000000000000014 /* ClipModels.swift in Share Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* ClipModels.swift */; };
+		A10000000000000000000015 /* PreferencesStore.swift in Share Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* PreferencesStore.swift */; };
+		A10000000000000000000016 /* BookmarkFileDataSource.swift in Share Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* BookmarkFileDataSource.swift */; };
+		A10000000000000000000017 /* ClipRepository.swift in Share Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* ClipRepository.swift */; };
 		A10000000000000000000012 /* QuickSaveShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* QuickSaveShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -71,21 +75,65 @@
 		A40000000000000000000002 /* QuickSave */ = {
 			isa = PBXGroup;
 			children = (
-				A20000000000000000000001,
-				A20000000000000000000002,
-				A20000000000000000000003,
-				A20000000000000000000004,
-				A20000000000000000000005,
-				A20000000000000000000006,
-				A20000000000000000000007,
-				A20000000000000000000008,
-				A20000000000000000000009,
-				A2000000000000000000000A,
-				A2000000000000000000000B,
-				A2000000000000000000000C,
-				A20000000000000000000011,
+				A20000000000000000000001 /* QuickSaveApp.swift */,
+				A40000000000000000000006 /* Models */,
+				A40000000000000000000007 /* Repositories */,
+				A40000000000000000000008 /* Storage */,
+				A40000000000000000000009 /* Support */,
+				A4000000000000000000000A /* ViewModels */,
+				A4000000000000000000000B /* Views */,
 			);
 			path = QuickSave;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000006 /* Models */ = {
+			isa = PBXGroup;
+			children = ( A20000000000000000000002 /* ClipModels.swift */ );
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000007 /* Repositories */ = {
+			isa = PBXGroup;
+			children = ( A20000000000000000000006 /* ClipRepository.swift */ );
+			path = Repositories;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000008 /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000003 /* PreferencesStore.swift */,
+				A20000000000000000000004 /* BookmarkFileDataSource.swift */,
+				A20000000000000000000005 /* SharedPayloadStore.swift */,
+			);
+			path = Storage;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000009 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000007 /* AppDependencies.swift */,
+				A20000000000000000000011 /* AppIntents.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+		A4000000000000000000000A /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000008 /* HomeViewModel.swift */,
+				A20000000000000000000009 /* SettingsViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		A4000000000000000000000B /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000A /* QuickSaveStyle.swift */,
+				A2000000000000000000000B /* HomeView.swift */,
+				A2000000000000000000000C /* SettingsView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 		A40000000000000000000003 /* QuickSaveShare */ = {
@@ -194,7 +242,7 @@
 
 /* Begin PBXSourcesBuildPhase section */
 		A70000000000000000000001 /* QuickSave Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ( A10000000000000000000001, A10000000000000000000002, A10000000000000000000003, A10000000000000000000004, A10000000000000000000005, A10000000000000000000006, A10000000000000000000007, A10000000000000000000008, A10000000000000000000009, A1000000000000000000000A, A1000000000000000000000B, A1000000000000000000000C, A10000000000000000000013 ); runOnlyForDeploymentPostprocessing = 0; };
-		A70000000000000000000003 /* Share Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ( A1000000000000000000000D, A10000000000000000000011 ); runOnlyForDeploymentPostprocessing = 0; };
+		A70000000000000000000003 /* Share Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ( A1000000000000000000000D, A10000000000000000000011, A10000000000000000000014, A10000000000000000000015, A10000000000000000000016, A10000000000000000000017 ); runOnlyForDeploymentPostprocessing = 0; };
 		A70000000000000000000005 /* Test Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ( A1000000000000000000000E, A1000000000000000000000F, A10000000000000000000010 ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 

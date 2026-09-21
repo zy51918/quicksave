@@ -7,6 +7,7 @@ protocol ClipRepository {
 
     func setTargetFile(bookmark: Data)
     func clearTargetFile()
+    func isTargetFileAccessible() async -> Bool
     func saveEntry(text: String, category: String?) async -> Result<Void, ClipError>
     func clearSavedFile() async -> Result<Void, ClipError>
     func setCategories(_ categories: [String])
@@ -41,6 +42,10 @@ final class ClipRepositoryImpl: ClipRepository {
 
     func clearTargetFile() {
         preferences.targetFileBookmark = nil
+    }
+
+    func isTargetFileAccessible() async -> Bool {
+        await files.isAccessible(bookmark: preferences.targetFileBookmark)
     }
 
     func saveEntry(text: String, category: String?) async -> Result<Void, ClipError> {

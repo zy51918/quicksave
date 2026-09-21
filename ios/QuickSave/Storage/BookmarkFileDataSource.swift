@@ -9,6 +9,7 @@ enum FileDataSourceError: Error {
 protocol FileDataSource: Sendable {
     func appendLine(_ line: String, to bookmark: Data) async throws
     func clearFile(bookmark: Data) async throws
+    func isAccessible(bookmark: Data?) async -> Bool
 }
 
 actor BookmarkFileDataSource: FileDataSource {
@@ -28,13 +29,11 @@ actor BookmarkFileDataSource: FileDataSource {
 
     func appendLine(_ line: String, to bookmark: Data) async throws {
         let url = try resolve(bookmark)
+        defer { url.stopAccessingSecurityScopedResource() }
         let data = Data(line.utf8)
         guard fileManager.fileExists(atPath: url.path) else { throw FileDataSourceError.missing }
         let handle = try FileHandle(forWritingTo: url)
-        defer {
-            try? handle.close()
-            url.stopAccessingSecurityScopedResource()
-        }
+        defer { try? handle.close() }
         try handle.seekToEnd()
         try handle.write(contentsOf: data)
     }
@@ -46,12 +45,13 @@ actor BookmarkFileDataSource: FileDataSource {
         try Data().write(to: url, options: .atomic)
     }
 
-    func isAccessible(bookmark: Data?) -> Bool {
+    func isAccessible(bookmark: Data?) async -> Bool {
         guard let bookmark else { return false }
         do {
             let url = try resolve(bookmark)
+            let accessible = fileManager.fileExists(atPath: url.path)
             url.stopAccessingSecurityScopedResource()
-            return true
+            return accessible
         } catch {
             return false
         }

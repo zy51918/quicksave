@@ -33,6 +33,17 @@ final class SettingsViewModel: ObservableObject {
         categories = repository.categories
     }
 
+    func validateTargetFileAccess() {
+        guard repository.targetFileBookmark != nil else {
+            targetFileConfigured = false
+            return
+        }
+        Task { [weak self] in
+            guard let self else { return }
+            targetFileConfigured = await repository.isTargetFileAccessible()
+        }
+    }
+
     func setTargetFile(bookmark: Data) {
         repository.setTargetFile(bookmark: bookmark)
         reload()
