@@ -29,7 +29,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -180,7 +179,6 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
         ) {
             Spacer(Modifier.height(Dim.screenVertical))
             SectionHeader("保存目标文件")
-            HorizontalDivider(Modifier.padding(vertical = Dim.itemSpacing))
 
             if (targetUri != null) {
                 Card(
@@ -271,7 +269,6 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
             // 全局悬浮窗区块
             Spacer(Modifier.height(Dim.sectionSpacing))
             SectionHeader("全局悬浮窗")
-            HorizontalDivider(Modifier.padding(vertical = Dim.itemSpacing))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -295,7 +292,6 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
             // 分类管理区块
             Spacer(Modifier.height(Dim.sectionSpacing))
             SectionHeader("分类管理")
-            HorizontalDivider(Modifier.padding(vertical = Dim.itemSpacing))
 
             if (categories.isEmpty()) {
                 Text(
@@ -394,25 +390,17 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
     }
 }
 
-/**
- * 设置页分区标题：统一「保存目标文件 / 全局悬浮窗 / 分类管理」三块的视觉样式。
- * 用 onSurface 色而非 primary，避免标题与正文形成过强色差，与 surface 顶栏基调一致。
- */
 @Composable
 private fun SectionHeader(title: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp, bottom = 2.dp)
     ) {
         Text(
             title,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(Modifier.width(12.dp))
-        HorizontalDivider(
-            modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.outlineVariant
         )
     }
 }

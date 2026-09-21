@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.ylib.quicksave.MainActivity
+import com.ylib.quicksave.notification.NotificationIconSpec
 
 class ClipboardMonitorService : Service() {
 
@@ -43,7 +44,7 @@ class ClipboardMonitorService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_menu_save)
+            .setSmallIcon(NotificationIconSpec.smallIcon)
             .setContentTitle("QuickSave")
             .setContentText("点击打开应用")
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -53,3 +54,4 @@ class ClipboardMonitorService : Service() {
             .build()
     }
 }
+

@@ -1,10 +1,10 @@
 package com.ylib.quicksave.overlay
 
+import android.annotation.SuppressLint
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.app.Service
-import android.content.ClipboardManager
 import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.Intent
@@ -16,7 +16,9 @@ import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.RippleDrawable
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
@@ -41,6 +43,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import com.ylib.quicksave.recorder.RecorderService
 import com.ylib.quicksave.recorder.RecordingController
+import com.ylib.quicksave.ui.ClipboardSaveActivity
 import com.ylib.quicksave.ui.RecordPermissionActivity
 import com.ylib.quicksave.util.PermissionHelper
 import kotlin.math.abs
@@ -50,16 +53,14 @@ class OverlayService : Service() {
 
     companion object {
         const val ACTION_STOP = "com.ylib.quicksave.overlay.STOP"
-        private const val HANDLE_W_DP = 8
+
+        internal fun clipboardSaveActivityClass() = ClipboardSaveActivity::class.java
+        private const val HANDLE_W_DP = OverlayHandleSpec.WIDTH_DP
         private const val HANDLE_H_DP = 64
-        private const val HANDLE_TOUCH_W_DP = 48
-        private const val HANDLE_PRESS_DURATION_MS = 100L
+        private const val HANDLE_TOUCH_W_DP = OverlayHandleSpec.TOUCH_WIDTH_DP
         private const val HANDLE_SETTLE_DURATION_MS = 220L
-        private const val ACTION_W_DP = 92
-        private const val ACTION_H_DP = 76
-        private const val PANEL_ALPHA = 82 // #173942 at 32%
-        private const val PANEL_STROKE_ALPHA = 46 // #D7E3E5 at 18%
-        private const val ACTION_ALPHA = 199 // #087F7B at 78%
+        private const val ACTION_W_DP = OverlayPanelSpec.ACTION_WIDTH_DP
+        private const val ACTION_H_DP = OverlayPanelSpec.ACTION_HEIGHT_DP
         private const val TAG = "OverlayService"
         // 悬浮窗必须绕过系统栏 inset-fit，否则 gravity=TOP|LEFT, x=0 的窗口会被系统按
         // fitTypes=STATUS_BARS/NAVIGATION_BARS 收进"安全区"里定位。安全区的偏移量在竖屏
@@ -88,6 +89,8 @@ class OverlayService : Service() {
     private var currentEdge = OverlayEdge.RIGHT
     private var clipboardSaving = false
     private var edgeAnimator: ValueAnimator? = null
+    private var handlePressAnimator: ValueAnimator? = null
+    private var draggingHandle = false
     // 防止 Service.onConfigurationChanged 与 ComponentCallbacks2 两条路径同时触发导致重复 remove+add
     @Volatile private var relayouting = false
 
@@ -196,6 +199,7 @@ class OverlayService : Service() {
 
     override fun onDestroy() {
         cancelEdgeAnimation()
+        handlePressAnimator?.cancel()
         handleVisualView?.animate()?.cancel()
         unregisterComponentCallbacks(configCallback)
         removeOverlay()
@@ -205,6 +209,13 @@ class OverlayService : Service() {
 
     private fun overlayRepo() =
         (application as QuickSaveApplication).overlayRepository
+
+    private fun overlayPalette(): OverlayClipboardColors {
+        val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        return OverlayClipboardPalette.forNightMode(
+            nightMode == Configuration.UI_MODE_NIGHT_YES
+        )
+    }
 
     // --- 叠加层视图 ---
     private fun addOverlay(pos: OverlayPosition) {
@@ -281,8 +292,8 @@ class OverlayService : Service() {
             layoutParams = FrameLayout.LayoutParams(dp(HANDLE_TOUCH_W_DP), dp(HANDLE_H_DP))
             isClickable = true
             isFocusable = true
-            contentDescription = "展开悬浮窗"
-            setOnClickListener { toggle() }
+            contentDescription = "滑动展开悬浮窗；长按后拖动调整位置"
+            setOnClickListener { expand() }
             addView(visual)
         }
     }
@@ -325,16 +336,19 @@ class OverlayService : Service() {
     ): PanelAction {
         val icon = ImageView(this).apply {
             setImageResource(iconRes)
-            imageTintList = ColorStateList.valueOf(Color.WHITE)
+            imageTintList = ColorStateList.valueOf(overlayPalette().actionContentColor)
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            layoutParams = LinearLayout.LayoutParams(dp(24), dp(24)).apply {
-                bottomMargin = dp(4)
+            layoutParams = LinearLayout.LayoutParams(
+                dp(OverlayPanelSpec.ICON_SIZE_DP),
+                dp(OverlayPanelSpec.ICON_SIZE_DP)
+            ).apply {
+                bottomMargin = dp(OverlayPanelSpec.ICON_BOTTOM_MARGIN_DP)
             }
         }
         val labelView = TextView(this).apply {
             text = label
             textSize = 11f
-            setTextColor(Color.WHITE)
+            setTextColor(overlayPalette().actionContentColor)
             gravity = Gravity.CENTER
             maxLines = 1
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
@@ -372,12 +386,12 @@ class OverlayService : Service() {
     }
 
     private fun buildPanelBackground(): Drawable = GradientDrawable().apply {
+        val palette = overlayPalette()
         cornerRadius = dp(20).toFloat()
-        setColor(Color.argb(PANEL_ALPHA, 23, 57, 66))
-        setStroke(dp(1), Color.argb(PANEL_STROKE_ALPHA, 215, 227, 229))
+        setColor(palette.panelColor)
     }
 
-    private fun buildActionBackground(color: Int = Color.argb(ACTION_ALPHA, 8, 127, 123)): Drawable {
+    private fun buildActionBackground(color: Int = overlayPalette().actionColor): Drawable {
         val content = GradientDrawable().apply {
             cornerRadius = dp(14).toFloat()
             setColor(color)
@@ -395,55 +409,125 @@ class OverlayService : Service() {
 
     private fun buildHandleBackground(isRecording: Boolean = false): GradientDrawable =
         GradientDrawable().apply {
-            cornerRadius = dp(HANDLE_W_DP / 2).toFloat()
+            shape = if (OverlayHandleSpec.USE_ROUNDED_BACKGROUND) {
+                GradientDrawable.RECTANGLE
+            } else {
+                GradientDrawable.OVAL
+            }
+            cornerRadius = OverlayHandleSpec.cornerRadiusPx(
+                dp(HANDLE_W_DP),
+                dp(HANDLE_H_DP)
+            )
             setColor(
                 if (isRecording) Color.argb(170, 255, 70, 70)
-                else Color.argb(PANEL_ALPHA, 23, 57, 66)
+                else Color.argb(
+                    OverlayHandleSpec.NORMAL_ALPHA,
+                    OverlayHandleSpec.NORMAL_RED,
+                    OverlayHandleSpec.NORMAL_GREEN,
+                    OverlayHandleSpec.NORMAL_BLUE
+                )
             )
         }
 
-    // --- 触摸：拖拽 vs 点击 ---
+    // --- 触摸：点击不展开（防误触）；直接滑动展开面板；长按把手变大后解锁拖移（调位置/换边） ---
+    @SuppressLint("ClickableViewAccessibility") // 点击动作仅供无障碍（TalkBack 双击展开），触摸路径故意不调 performClick
     private fun attachHandleTouch(handle: View) {
         val slop = ViewConfiguration.get(this).scaledTouchSlop
+        val holdTimeoutMs = ViewConfiguration.getLongPressTimeout().toLong()
+        val handler = Handler(Looper.getMainLooper())
         var downRawX = 0f
         var downRawY = 0f
+        var downTouchOffsetX = 0
         var downY = 0
         var moved = false
+        var holdArmed = false
+        val holdRunnable = Runnable {
+            holdArmed = true
+            animateHandleWidth(OverlayAnimationSpec.HOLD_SCALE, OverlayAnimationSpec.HOLD_DURATION_MS)
+        }
 
         handle.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     cancelEdgeAnimation()
-                    animateHandlePress(pressed = true)
-                    downRawX = event.rawX; downRawY = event.rawY
-                    downY = params.y; moved = false
+                    animateHandleWidth(OverlayAnimationSpec.PRESS_SCALE, OverlayAnimationSpec.PRESS_DURATION_MS)
+                    val root = rootView
+                    val rootWidth = root?.width?.takeIf { it > 0 }
+                        ?: root?.measuredWidth?.takeIf { it > 0 }
+                        ?: dp(HANDLE_TOUCH_W_DP)
+                    val startLeft = OverlayPositionCalculator.edgeWindowLeft(
+                        currentEdge, screenWidth, rootWidth
+                    )
+                    downRawX = event.rawX
+                    downRawY = event.rawY
+                    downTouchOffsetX = event.rawX.roundToInt() - startLeft
+                    downY = params.y
+                    moved = false
+                    holdArmed = false
+                    draggingHandle = false
+                    handler.postDelayed(holdRunnable, holdTimeoutMs)
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
                     val dx = event.rawX - downRawX
                     val dy = event.rawY - downRawY
-                    if (!moved && (abs(dx) > slop || abs(dy) > slop)) moved = true
-                    if (moved) {
+                    if (!moved && (abs(dx) > slop || abs(dy) > slop)) {
+                        moved = true
+                        if (!holdArmed) handler.removeCallbacks(holdRunnable)
+                    }
+                    // 长按蓄力（把手变大）后窗口才跟随手指；蓄力前的滑动不动窗口，留给"展开"判定
+                    if (moved && holdArmed) {
+                        val root = rootView
+                        val rootWidth = root?.width?.takeIf { it > 0 }
+                            ?: root?.measuredWidth?.takeIf { it > 0 }
+                            ?: dp(HANDLE_TOUCH_W_DP)
                         val handleH = handle.height.takeIf { it > 0 } ?: dp(HANDLE_H_DP)
+                        if (!draggingHandle) {
+                            params.gravity = Gravity.TOP or Gravity.LEFT
+                            draggingHandle = true
+                        }
+                        params.x = OverlayPositionCalculator.windowLeftForPointer(
+                            event.rawX.roundToInt(),
+                            downTouchOffsetX,
+                            screenWidth,
+                            rootWidth
+                        )
                         params.y = OverlayPositionCalculator.clampY(
                             (downY + dy).roundToInt(), handleH, screenHeight
                         )
-                        windowManager.updateViewLayout(rootView, params)
+                        runCatching { windowManager.updateViewLayout(rootView, params) }
+                            .onFailure { Log.e(TAG, "drag handle: updateViewLayout FAILED", it) }
                     }
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    animateHandlePress(pressed = false)
-                    if (!moved) {
-                        handle.performClick()
+                    animateHandleWidth(OverlayAnimationSpec.RELEASE_SCALE, OverlayAnimationSpec.RELEASE_DURATION_MS)
+                    handler.removeCallbacks(holdRunnable)
+                    val dx = event.rawX - downRawX
+                    val dy = event.rawY - downRawY
+                    if (holdArmed) {
+                        // 蓄力拖拽：松手吸附最近边（调位置/换边）
+                        if (moved) animateToNearestEdge(event.rawX, handle) else draggingHandle = false
                     } else {
-                        animateToNearestEdge(event.rawX, handle)
+                        // 直接滑动：向内滑够距离即展开
+                        val inward = if (currentEdge == OverlayEdge.RIGHT) dx < 0 else dx > 0
+                        if (moved && inward &&
+                            abs(dx) >= dp(OverlayHandleSpec.SWIPE_OPEN_DP) &&
+                            abs(dx) > abs(dy)
+                        ) {
+                            expand()
+                        }
                     }
                     true
                 }
                 MotionEvent.ACTION_CANCEL -> {
-                    // 系统取消触摸序列：不切换、不吸附、不持久化，把手留在当前位置
-                    animateHandlePress(pressed = false)
+                    animateHandleWidth(OverlayAnimationSpec.RELEASE_SCALE, OverlayAnimationSpec.RELEASE_DURATION_MS)
+                    handler.removeCallbacks(holdRunnable)
+                    draggingHandle = false
+                    holdArmed = false
+                    params.gravity = Gravity.TOP or edgeGravity(currentEdge)
+                    params.x = 0
+                    runCatching { windowManager.updateViewLayout(rootView, params) }
                     moved = false
                     true
                 }
@@ -452,36 +536,71 @@ class OverlayService : Service() {
         }
     }
 
-    private fun animateHandlePress(pressed: Boolean) {
+    private fun animateHandleWidth(scale: Float, durationMs: Long) {
         val visual = handleVisualView ?: return
-        visual.animate()
-            .cancel()
-        visual.animate()
-            .scaleX(if (pressed) 1.04f else 1f)
-            .setDuration(if (pressed) HANDLE_PRESS_DURATION_MS else HANDLE_SETTLE_DURATION_MS)
-            .setInterpolator(DecelerateInterpolator(1.6f))
-            .start()
+        val baseWidth = dp(HANDLE_W_DP)
+        val currentWidth = (visual.layoutParams as? FrameLayout.LayoutParams)?.width
+            ?.takeIf { it > 0 }
+            ?: baseWidth
+        val targetWidth = (baseWidth * scale).roundToInt()
+        val handleHeight = visual.height.takeIf { it > 0 } ?: dp(HANDLE_H_DP)
+
+        visual.scaleX = OverlayAnimationSpec.RELEASE_SCALE
+        visual.animate().cancel()
+        handlePressAnimator?.cancel()
+
+        handlePressAnimator = ValueAnimator.ofInt(currentWidth, targetWidth).apply {
+            duration = durationMs
+            interpolator = DecelerateInterpolator(1.6f)
+            addUpdateListener { animator ->
+                val width = animator.animatedValue as Int
+                val lp = visual.layoutParams as? FrameLayout.LayoutParams ?: return@addUpdateListener
+                if (lp.width != width) {
+                    lp.width = width
+                    visual.layoutParams = lp
+                }
+                (visual.background as? GradientDrawable)?.cornerRadius =
+                    OverlayHandleSpec.cornerRadiusPx(width, handleHeight)
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    if (handlePressAnimator === animation) {
+                        handlePressAnimator = null
+                    }
+                }
+            })
+        }.also { it.start() }
     }
 
     private fun animateToNearestEdge(rawX: Float, handle: View) {
         val root = rootView ?: return
-        val targetEdge = OverlayPositionCalculator.nearestEdge(rawX.roundToInt(), screenWidth)
-        if (targetEdge == currentEdge) {
-            persistPosition(handle)
-            return
-        }
-
         val rootWidth = root.width.takeIf { it > 0 }
             ?: root.measuredWidth.takeIf { it > 0 }
             ?: dp(HANDLE_TOUCH_W_DP)
-        val startX = if (currentEdge == OverlayEdge.LEFT) 0 else screenWidth - rootWidth
-        val targetX = if (targetEdge == OverlayEdge.LEFT) 0 else screenWidth - rootWidth
+        val targetEdge = OverlayPositionCalculator.nearestEdge(rawX.roundToInt(), screenWidth)
+        val startX = if (draggingHandle) {
+            params.x
+        } else {
+            OverlayPositionCalculator.edgeWindowLeft(currentEdge, screenWidth, rootWidth)
+        }
+        val targetX = OverlayPositionCalculator.edgeWindowLeft(targetEdge, screenWidth, rootWidth)
 
-        // Keep the current visual position while switching to a left-based coordinate system.
         params.gravity = Gravity.TOP or Gravity.LEFT
         params.x = startX
         runCatching { windowManager.updateViewLayout(root, params) }
             .onFailure { Log.e(TAG, "animateToNearestEdge: prepare FAILED", it) }
+
+        if (startX == targetX) {
+            draggingHandle = false
+            currentEdge = targetEdge
+            params.gravity = Gravity.TOP or edgeGravity(currentEdge)
+            params.x = 0
+            alignHandleVisual()
+            runCatching { windowManager.updateViewLayout(root, params) }
+                .onFailure { error -> Log.e(TAG, "animateToNearestEdge: finish FAILED", error) }
+            persistPosition(handle)
+            return
+        }
 
         val animator = ValueAnimator.ofInt(startX, targetX).apply {
             duration = HANDLE_SETTLE_DURATION_MS
@@ -495,6 +614,7 @@ class OverlayService : Service() {
                 override fun onAnimationEnd(animation: Animator) {
                     if (edgeAnimator !== animation || rootView !== root) return
                     edgeAnimator = null
+                    draggingHandle = false
                     currentEdge = targetEdge
                     params.gravity = Gravity.TOP or edgeGravity(currentEdge)
                     params.x = 0
@@ -534,8 +654,6 @@ class OverlayService : Service() {
     }
 
     // --- 展开 / 折叠 ---
-    private fun toggle() = if (expanded) collapse() else expand()
-
     private fun expand() {
         expanded = true
         handleView?.visibility = View.GONE
@@ -575,45 +693,19 @@ class OverlayService : Service() {
     private fun onClipboardSaveClicked() {
         if (clipboardSaving) return
 
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val text = runCatching {
-            clipboard.primaryClip
-                ?.takeIf { it.itemCount > 0 }
-                ?.getItemAt(0)
-                ?.text
-                ?.toString()
-        }.getOrNull()?.takeIf { it.isNotBlank() }
-
-        if (text == null) {
-            Toast.makeText(this, "剪切板为空，请先复制文字", Toast.LENGTH_SHORT).show()
-            return
-        }
-
         clipboardSaving = true
         collapse()
-        scope.launch {
-            val result = runCatching {
-                val category = clipRepository().getSelectedCategory().first()
-                clipRepository().saveEntry(text, category).getOrThrow()
-            }
-            clipboardSaving = false
-            val exception = result.exceptionOrNull()
-            val message = when {
-                result.isSuccess -> "已保存剪切板内容"
-                exception is IllegalStateException -> "请先在设置中选择保存文件"
-                exception is SecurityException -> "文件无写入权限，请重新选择"
-                else -> "保存失败：${exception?.message ?: "未知错误"}"
-            }
-            Toast.makeText(
-                this@OverlayService,
-                message,
-                if (result.isSuccess) Toast.LENGTH_SHORT else Toast.LENGTH_LONG
-            ).show()
+        runCatching {
+            startActivity(
+                Intent(this, clipboardSaveActivityClass())
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        }.onFailure { error ->
+            Log.e(TAG, "Unable to launch clipboard save activity", error)
+            Toast.makeText(this, "Unable to open clipboard save", Toast.LENGTH_SHORT).show()
         }
+        clipboardSaving = false
     }
-
-    private fun clipRepository() =
-        (application as QuickSaveApplication).clipRepository
 
     private fun observeRecordingState() {
         scope.launch {
@@ -626,12 +718,17 @@ class OverlayService : Service() {
     private fun applyRecordingVisual(isRecording: Boolean, seconds: Int) {
         (handleVisualView?.background as? GradientDrawable)?.setColor(
             if (isRecording) Color.argb(170, 255, 70, 70)
-            else Color.argb(PANEL_ALPHA, 23, 57, 66)
+            else Color.argb(
+                OverlayHandleSpec.NORMAL_ALPHA,
+                OverlayHandleSpec.NORMAL_RED,
+                OverlayHandleSpec.NORMAL_GREEN,
+                OverlayHandleSpec.NORMAL_BLUE
+            )
         )
         redDot?.visibility = if (isRecording) View.VISIBLE else View.GONE
         recordButton?.background = buildActionBackground(
             if (isRecording) Color.argb(170, 255, 70, 70)
-            else Color.argb(ACTION_ALPHA, 8, 127, 123)
+            else overlayPalette().actionColor
         )
         recordButtonLabel?.text = if (isRecording) "录音中 ${formatElapsed(seconds)}" else "录音"
     }

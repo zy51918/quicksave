@@ -7,6 +7,21 @@ object OverlayPositionCalculator {
     fun nearestEdge(centerX: Int, screenWidth: Int): OverlayEdge =
         if (centerX < screenWidth / 2) OverlayEdge.LEFT else OverlayEdge.RIGHT
 
+    fun clampX(left: Int, viewWidth: Int, screenWidth: Int): Int {
+        val max = (screenWidth - viewWidth).coerceAtLeast(0)
+        return left.coerceIn(0, max)
+    }
+
+    fun windowLeftForPointer(
+        rawX: Int,
+        touchOffsetX: Int,
+        screenWidth: Int,
+        viewWidth: Int
+    ): Int = clampX(rawX - touchOffsetX, viewWidth, screenWidth)
+
+    fun edgeWindowLeft(edge: OverlayEdge, screenWidth: Int, viewWidth: Int): Int =
+        if (edge == OverlayEdge.LEFT) 0 else (screenWidth - viewWidth).coerceAtLeast(0)
+
     /** 将顶部 Y 钳制到 [0, screenHeight - viewHeight]，避免拖出屏幕。 */
     fun clampY(y: Int, viewHeight: Int, screenHeight: Int): Int {
         val max = (screenHeight - viewHeight).coerceAtLeast(0)

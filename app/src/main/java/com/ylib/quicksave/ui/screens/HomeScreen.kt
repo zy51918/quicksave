@@ -34,7 +34,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -209,28 +208,19 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
 
 @Composable
 private fun SectionLabel(eyebrow: String, title: String) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 12.dp, bottom = 2.dp),
-        verticalAlignment = Alignment.Bottom
+            .padding(top = 12.dp, bottom = 2.dp)
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                eyebrow,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontFamily = FontFamily.Monospace
-            )
-            Spacer(Modifier.height(3.dp))
-            Text(title, style = MaterialTheme.typography.titleMedium)
-        }
-        HorizontalDivider(
-            modifier = Modifier
-                .width(48.dp)
-                .padding(bottom = 4.dp),
-            color = MaterialTheme.colorScheme.outlineVariant
+        Text(
+            eyebrow,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            fontFamily = FontFamily.Monospace
         )
+        Spacer(Modifier.height(3.dp))
+        Text(title, style = MaterialTheme.typography.titleMedium)
     }
 }
 
@@ -242,7 +232,7 @@ private fun EmptyClipboardState() {
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
@@ -250,7 +240,7 @@ private fun EmptyClipboardState() {
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(8.dp))
             Text(
                 "剪切板为空，请先在其他应用复制文字",
                 style = MaterialTheme.typography.bodyMedium,
@@ -276,7 +266,7 @@ internal fun CategoryChipRow(
         shape = MaterialTheme.shapes.medium,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
-        Column(Modifier.padding(14.dp)) {
+        Column(Modifier.padding(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("分类（可选）", style = MaterialTheme.typography.labelLarge)
                 Spacer(Modifier.width(8.dp))
@@ -286,7 +276,7 @@ internal fun CategoryChipRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Spacer(Modifier.height(Dim.labelToContent))
+            Spacer(Modifier.height(6.dp))
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(Dim.chipSpacing),
                 modifier = Modifier.fillMaxWidth()
@@ -299,8 +289,13 @@ internal fun CategoryChipRow(
                         },
                         label = { Text(category) },
                         colors = FilterChipDefaults.filterChipColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     )
                 }
@@ -310,7 +305,9 @@ internal fun CategoryChipRow(
                         onClick = onAddClick,
                         label = { Text("＋ 新增") },
                         colors = FilterChipDefaults.filterChipColors(
-                            labelColor = MaterialTheme.colorScheme.primary
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            labelColor = MaterialTheme.colorScheme.primary,
+                            iconColor = MaterialTheme.colorScheme.primary
                         ),
                         border = FilterChipDefaults.filterChipBorder(
                             enabled = true,
@@ -338,7 +335,7 @@ internal fun ClipboardCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         shape = MaterialTheme.shapes.large
     ) {
-        Column(Modifier.padding(18.dp)) {
+        Column(Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
@@ -363,7 +360,7 @@ internal fun ClipboardCard(
                     )
                 }
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(10.dp))
             Text(
                 clipText,
                 style = MaterialTheme.typography.bodyLarge,
@@ -371,7 +368,7 @@ internal fun ClipboardCard(
                 maxLines = 4,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(10.dp))
             Button(
                 onClick = onSave,
                 enabled = !isSaving,
@@ -406,9 +403,9 @@ internal fun ManualInputCard(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         shape = MaterialTheme.shapes.large
     ) {
-        Column(Modifier.padding(16.dp)) {
+        Column(Modifier.padding(12.dp)) {
             Text("写下一条新的记录", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = text,
                 onValueChange = onTextChange,
@@ -420,7 +417,7 @@ internal fun ManualInputCard(
                     .fillMaxWidth()
                     .testTag(TAG_MANUAL_INPUT_FIELD)
             )
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
             Button(
                 onClick = onSave,
                 enabled = canSave,
@@ -453,7 +450,7 @@ private fun ClearFileAction(onClick: () -> Unit) {
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error
             )
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.width(8.dp))
             Text(
                 "清空保存文件内容",
                 modifier = Modifier.weight(1f),
