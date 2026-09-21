@@ -1,5 +1,7 @@
 # ARCH Changelist
 
+## [2026-09-21] [QS-0004] 新增 iOS 原生版架构：SwiftUI + Repository/DataSource 分层、security-scoped bookmark 文件访问、Share Extension/App Group 跨 App 文字入口与 App Intents 快捷入口；明确 iOS 不实现 Android 全局悬浮窗、常驻通知和后台剪切板轮询，录音延期单独评审，项目级 ARCH 升级并追加 iOS 架构说明。
+
 ## [2026-06-11] [QS-0003] 全局悬浮窗合入 main，**有架构变更**，项目级 ARCH 升 v1.3：新增 `overlay/`、`recorder/` 包；新增 OverlayService（非前台）/RecorderService（mic 前台）/RecordingController（StateFlow 桥）/OverlayRepository/InputActivity/RecordPermissionActivity；§一 技术栈补 WindowManager/MediaRecorder/MediaStore；§四 增 OverlayRepository、RecordingController、录音输出协议与 3 个 DataStore 键；§七 增 overlayRepository 与启停流程；§八 增 SYSTEM_ALERT_WINDOW/RECORD_AUDIO/FOREGROUND_SERVICE_MICROPHONE 并注明 OverlayService 非前台；§十 索引追加 QS-0003（架构变更=有，以 design-floating-window.md 承载）。
 
 ## [2026-06-11] [QS-0003][打磨] OverlayService 由前台服务降级为普通 started 服务（靠 ClipboardMonitorService 保活），消除第二条常驻通知；无新增模块，仅服务前台属性与启动方式调整。

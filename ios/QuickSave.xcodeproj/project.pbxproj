@@ -1,0 +1,230 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* QuickSaveApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* QuickSaveApp.swift */; };
+		A10000000000000000000002 /* ClipModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* ClipModels.swift */; };
+		A10000000000000000000003 /* PreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* PreferencesStore.swift */; };
+		A10000000000000000000004 /* BookmarkFileDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* BookmarkFileDataSource.swift */; };
+		A10000000000000000000005 /* SharedPayloadStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* SharedPayloadStore.swift */; };
+		A10000000000000000000006 /* ClipRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* ClipRepository.swift */; };
+		A10000000000000000000007 /* AppDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* AppDependencies.swift */; };
+		A10000000000000000000008 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* HomeViewModel.swift */; };
+		A10000000000000000000009 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* SettingsViewModel.swift */; };
+		A1000000000000000000000A /* QuickSaveStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* QuickSaveStyle.swift */; };
+		A1000000000000000000000B /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* HomeView.swift */; };
+		A1000000000000000000000C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* SettingsView.swift */; };
+		A10000000000000000000013 /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* AppIntents.swift */; };
+		A1000000000000000000000D /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* ShareViewController.swift */; };
+		A1000000000000000000000E /* ClipRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* ClipRepositoryTests.swift */; };
+		A1000000000000000000000F /* HomeViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* HomeViewModelTests.swift */; };
+		A10000000000000000000010 /* SharedPayloadStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* SharedPayloadStoreTests.swift */; };
+		A10000000000000000000011 /* SharedPayloadStore.swift in Share Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* SharedPayloadStore.swift */; };
+		A10000000000000000000012 /* QuickSaveShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* QuickSaveShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A20000000000000000000001 /* QuickSaveApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickSaveApp.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* ClipModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipModels.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* PreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000004 /* BookmarkFileDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkFileDataSource.swift; sourceTree = "<group>"; };
+		A20000000000000000000005 /* SharedPayloadStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedPayloadStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000006 /* ClipRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipRepository.swift; sourceTree = "<group>"; };
+		A20000000000000000000007 /* AppDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDependencies.swift; sourceTree = "<group>"; };
+		A20000000000000000000008 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
+		A20000000000000000000009 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
+		A2000000000000000000000A /* QuickSaveStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickSaveStyle.swift; sourceTree = "<group>"; };
+		A2000000000000000000000B /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A20000000000000000000011 /* AppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntents.swift; sourceTree = "<group>"; };
+		A2000000000000000000000D /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		A2000000000000000000000E /* ClipRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipRepositoryTests.swift; sourceTree = "<group>"; };
+		A2000000000000000000000F /* HomeViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModelTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000010 /* SharedPayloadStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedPayloadStoreTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000020 /* QuickSave.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuickSave.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000021 /* QuickSaveShare.appex */ = {isa = PBXFileReference; explicitFileType = wrapper.app-extension; includeInIndex = 0; path = QuickSaveShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000022 /* QuickSaveTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuickSaveTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A30000000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A30000000000000000000002 /* Share Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A30000000000000000000003 /* Test Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A40000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				A40000000000000000000002 /* QuickSave */,
+				A40000000000000000000003 /* QuickSaveShare */,
+				A40000000000000000000004 /* QuickSaveTests */,
+				A40000000000000000000005 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A40000000000000000000002 /* QuickSave */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000001,
+				A20000000000000000000002,
+				A20000000000000000000003,
+				A20000000000000000000004,
+				A20000000000000000000005,
+				A20000000000000000000006,
+				A20000000000000000000007,
+				A20000000000000000000008,
+				A20000000000000000000009,
+				A2000000000000000000000A,
+				A2000000000000000000000B,
+				A2000000000000000000000C,
+				A20000000000000000000011,
+			);
+			path = QuickSave;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000003 /* QuickSaveShare */ = {
+			isa = PBXGroup;
+			children = ( A2000000000000000000000D );
+			path = QuickSaveShare;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000004 /* QuickSaveTests */ = {
+			isa = PBXGroup;
+			children = (
+				A2000000000000000000000E,
+				A2000000000000000000000F,
+				A20000000000000000000010,
+			);
+			path = QuickSaveTests;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000005 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000020,
+				A20000000000000000000021,
+				A20000000000000000000022,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A50000000000000000000001 /* QuickSave */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A60000000000000000000001 /* Build configuration list for QuickSave */;
+			buildPhases = (
+				A30000000000000000000001,
+				A70000000000000000000001 /* QuickSave Sources */,
+				A70000000000000000000002 /* QuickSave Resources */,
+				A70000000000000000000007 /* Embed Foundation Extensions */,
+			);
+			buildRules = ();
+			dependencies = ( A80000000000000000000002 );
+			name = QuickSave;
+			productName = QuickSave;
+			productReference = A20000000000000000000020;
+			productType = "com.apple.product-type.application";
+		};
+		A50000000000000000000002 /* QuickSaveShare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A60000000000000000000002 /* Build configuration list for QuickSaveShare */;
+			buildPhases = (
+				A30000000000000000000002,
+				A70000000000000000000003 /* Share Sources */,
+				A70000000000000000000004 /* Share Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = QuickSaveShare;
+			productName = QuickSaveShare;
+			productReference = A20000000000000000000021;
+			productType = "com.apple.product-type.app-extension";
+		};
+		A50000000000000000000003 /* QuickSaveTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A60000000000000000000003 /* Build configuration list for QuickSaveTests */;
+			buildPhases = (
+				A30000000000000000000003,
+				A70000000000000000000005 /* Test Sources */,
+				A70000000000000000000006 /* Test Resources */,
+			);
+			buildRules = ();
+			dependencies = ( A80000000000000000000001 );
+			name = QuickSaveTests;
+			productName = QuickSaveTests;
+			productReference = A20000000000000000000022;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A90000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = { LastUpgradeCheck = 1600; TargetAttributes = { A50000000000000000000001 = { CreatedOnToolsVersion = 16.0; }; A50000000000000000000002 = { CreatedOnToolsVersion = 16.0; }; A50000000000000000000003 = { CreatedOnToolsVersion = 16.0; TestTargetID = A50000000000000000000001; }; }; };
+			buildConfigurationList = A60000000000000000000000 /* Build configuration list for PBXProject */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = ( en, zh-Hans, Base );
+			mainGroup = A40000000000000000000001;
+			productRefGroup = A40000000000000000000005;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = ( A50000000000000000000001, A50000000000000000000002, A50000000000000000000003 );
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A70000000000000000000002 /* QuickSave Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A70000000000000000000004 /* Share Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A70000000000000000000006 /* Test Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A70000000000000000000007 /* Embed Foundation Extensions */ = {isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 13; files = ( A10000000000000000000012 ); name = "Embed Foundation Extensions"; runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A70000000000000000000001 /* QuickSave Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ( A10000000000000000000001, A10000000000000000000002, A10000000000000000000003, A10000000000000000000004, A10000000000000000000005, A10000000000000000000006, A10000000000000000000007, A10000000000000000000008, A10000000000000000000009, A1000000000000000000000A, A1000000000000000000000B, A1000000000000000000000C, A10000000000000000000013 ); runOnlyForDeploymentPostprocessing = 0; };
+		A70000000000000000000003 /* Share Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ( A1000000000000000000000D, A10000000000000000000011 ); runOnlyForDeploymentPostprocessing = 0; };
+		A70000000000000000000005 /* Test Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = ( A1000000000000000000000E, A1000000000000000000000F, A10000000000000000000010 ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A80000000000000000000001 = {isa = PBXTargetDependency; target = A50000000000000000000001; targetProxy = A81000000000000000000001; };
+		A80000000000000000000002 = {isa = PBXTargetDependency; target = A50000000000000000000002; targetProxy = A81000000000000000000002; };
+/* End PBXTargetDependency section */
+
+/* Begin PBXContainerItemProxy section */
+		A81000000000000000000001 = {isa = PBXContainerItemProxy; containerPortal = A90000000000000000000001; proxyType = 1; remoteGlobalIDString = A50000000000000000000001; remoteInfo = QuickSave; };
+		A81000000000000000000002 = {isa = PBXContainerItemProxy; containerPortal = A90000000000000000000001; proxyType = 1; remoteGlobalIDString = A50000000000000000000002; remoteInfo = QuickSaveShare; };
+/* End PBXContainerItemProxy section */
+
+/* Begin XCBuildConfiguration section */
+		A61000000000000000000001 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = { ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; }; name = Debug; };
+		A61000000000000000000002 /* Release */ = {isa = XCBuildConfiguration; buildSettings = { ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; }; name = Release; };
+		A61000000000000000000003 /* App Debug */ = {isa = XCBuildConfiguration; buildSettings = { CODE_SIGN_ENTITLEMENTS = QuickSave/QuickSave.entitlements; ENABLE_TESTABILITY = YES; INFOPLIST_FILE = QuickSave/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 16.0; PRODUCT_BUNDLE_IDENTIFIER = com.ylib.quicksave.ios; PRODUCT_NAME = QuickSave; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Debug; };
+		A61000000000000000000004 /* App Release */ = {isa = XCBuildConfiguration; buildSettings = { CODE_SIGN_ENTITLEMENTS = QuickSave/QuickSave.entitlements; INFOPLIST_FILE = QuickSave/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 16.0; PRODUCT_BUNDLE_IDENTIFIER = com.ylib.quicksave.ios; PRODUCT_NAME = QuickSave; SWIFT_COMPILATION_MODE = wholemodule; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Release; };
+		A61000000000000000000005 /* Share Debug */ = {isa = XCBuildConfiguration; buildSettings = { APPLICATION_EXTENSION_API_ONLY = YES; CODE_SIGN_ENTITLEMENTS = QuickSaveShare/QuickSaveShare.entitlements; INFOPLIST_FILE = QuickSaveShare/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 16.0; PRODUCT_BUNDLE_IDENTIFIER = com.ylib.quicksave.ios.share; PRODUCT_NAME = QuickSaveShare; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Debug; };
+		A61000000000000000000006 /* Share Release */ = {isa = XCBuildConfiguration; buildSettings = { APPLICATION_EXTENSION_API_ONLY = YES; CODE_SIGN_ENTITLEMENTS = QuickSaveShare/QuickSaveShare.entitlements; INFOPLIST_FILE = QuickSaveShare/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 16.0; PRODUCT_BUNDLE_IDENTIFIER = com.ylib.quicksave.ios.share; PRODUCT_NAME = QuickSaveShare; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Release; };
+		A61000000000000000000007 /* Test Debug */ = {isa = XCBuildConfiguration; buildSettings = { BUNDLE_LOADER = "$(TEST_HOST)"; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 16.0; PRODUCT_BUNDLE_IDENTIFIER = com.ylib.quicksave.ios.tests; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QuickSave.app/QuickSave"; }; name = Debug; };
+		A61000000000000000000008 /* Test Release */ = {isa = XCBuildConfiguration; buildSettings = { BUNDLE_LOADER = "$(TEST_HOST)"; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 16.0; PRODUCT_BUNDLE_IDENTIFIER = com.ylib.quicksave.ios.tests; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QuickSave.app/QuickSave"; }; name = Release; };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A60000000000000000000000 /* Build configuration list for PBXProject */ = {isa = XCConfigurationList; buildConfigurations = ( A61000000000000000000001, A61000000000000000000002 ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		A60000000000000000000001 /* Build configuration list for QuickSave */ = {isa = XCConfigurationList; buildConfigurations = ( A61000000000000000000003, A61000000000000000000004 ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		A60000000000000000000002 /* Build configuration list for QuickSaveShare */ = {isa = XCConfigurationList; buildConfigurations = ( A61000000000000000000005, A61000000000000000000006 ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		A60000000000000000000003 /* Build configuration list for QuickSaveTests */ = {isa = XCConfigurationList; buildConfigurations = ( A61000000000000000000007, A61000000000000000000008 ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+	};
+	rootObject = A90000000000000000000001;
+}

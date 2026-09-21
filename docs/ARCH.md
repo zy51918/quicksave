@@ -288,5 +288,10 @@ val overlayRepository: OverlayRepository by lazy { OverlayRepositoryImpl(dataSto
 | `QS-0001` | MVP — 项目骨架（分层、Repository、SAF、前台 Service、Compose 导航） | 首次建立 | [features/QS-0001/arch-mvp.md](features/QS-0001/arch-mvp.md) |
 | `QS-0002` | 手动输入保存（v1.2，已交付） | **无** — 仅 UI 层增量（HomeUiState 字段拆分、HomeScreen 抽出 3 个 Composable）；Repository / DataStore / Service / 跨模块协议全部不变 | — |
 | `QS-0003` | 全局悬浮窗 + 文字输入 + 录音（v1.3，已交付） | **有** — 新增 `overlay/` 与 `recorder/` 包、`OverlayService`（非前台）/`RecorderService`（mic 前台）/`RecordingController`、`OverlayRepository`、`InputActivity`/`RecordPermissionActivity`；DataStore 增 3 键；新增 `SYSTEM_ALERT_WINDOW`/`RECORD_AUDIO`/`FOREGROUND_SERVICE_MICROPHONE` 权限；常驻通知由两条收成一条 | [features/QS-0003/design-floating-window.md](features/QS-0003/design-floating-window.md) |
+| `QS-0004` | iOS 原生版（主页、分类、用户选定文件、手动/剪切板保存、Share Extension；录音延期） | **有** — 新增 SwiftUI 主 App、Share Extension、security-scoped bookmark 文件层与 App Group；iOS 不实现 Android 全局悬浮窗/常驻通知，改用公开系统入口；录音另行评审 | [features/QS-0004/arch-ios-port.md](features/QS-0004/arch-ios-port.md) |
+
+### 十一、iOS 版架构说明（QS-0004）
+
+QS-0004 与 Android 代码并存但分 target 实现。iOS 版采用 SwiftUI + ObservableObject + Repository/DataSource 分层，保存格式与分类语义保持一致；文件访问使用 security-scoped bookmark。由于 iOS 没有公开的跨 App 悬浮窗、常驻前台通知或后台剪切板轮询能力，跨 App 文字入口采用 Share Extension，快捷入口采用 App Intents/Shortcuts；不使用私有 API。录音功能按用户决定延期，不包含在本阶段实现。
 
 > 后续 feature 若引入架构变更（新增模块、修改跨层协议），需在本表追加并新建 `arch-<feature_name>.md`（QS-0003 以 brainstorming 流程的 `design-floating-window.md` 承载架构说明）。仅做实现变更（不动接口）的 feature 在表中标注「无」即可，不需要单独的 arch 文档。
