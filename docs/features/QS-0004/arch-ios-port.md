@@ -112,7 +112,7 @@ scenePhase .active / HomeView appearance
   → resolve bookmark + start security-scoped access
   → FileHandle seekToEnd + UTF-8 append
   → HomeViewModel SaveResult
-  → SwiftUI alert/banner feedback
+  → SwiftUI Toast 浮层反馈（QuickSaveToast）
 ```
 
 iOS 剪切板读取仅发生在 App 前台，避免后台访问和不必要的系统隐私提示；用户仍需显式点保存，不做复制即自动保存。
@@ -124,10 +124,10 @@ Other App Share → QuickSave Share Extension
   → 校验单个 NSExtensionItem / 单个 public.text provider
   → 读取 App Group 中的目标文件 bookmark 与 selectedCategory
   → 复用 ClipRepositoryImpl.saveEntry 自动保存
-  → 显示结果并关闭 Extension，返回原 App
+  → sheet 内胶囊提示显示结果并关闭 Extension，返回原 App
 ```
 
-Share Extension 直接复用主 App 的共享配置和保存格式，不打开主 App、不写入 pending 文本；这与 Android 的自动保存行为保持一致。
+Share Extension 直接复用主 App 的共享配置和保存格式，不打开主 App、不写入 pending 文本；这与 Android 的自动保存行为保持一致。受系统 sheet 呈现方式约束，提示无法像 Android 透明 Activity 那样浮在原 App 之上，改为 sheet 内居中胶囊（详见 [ui-ios-port.md](ui-ios-port.md) §五）。
 
 ## 六、状态与错误模型
 

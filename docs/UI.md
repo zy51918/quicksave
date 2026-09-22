@@ -1,7 +1,7 @@
 # QuickSave — UI 交互设计文档（UI）
 
-> 版本：1.5
-> 日期：2026-08-11
+> 版本：1.6
+> 日期：2026-09-22
 > 作者：HIE 设计师
 
 ---
@@ -350,6 +350,27 @@
 | 录音权限被拒 | "需要麦克风权限才能录音" |
 | 录音启动失败 | "录音启动失败：{原因}" / "无法创建录音文件" |
 
+### 6.2 iOS 版反馈规范（v1.6，QS-0004）
+
+iOS 无公开的系统级 Toast API，主 App 内以自绘浮层 `QuickSaveToast` 还原 Android 的即时反馈；时长按 Android 语义区分成功/失败。
+
+| 场景 | 消息 | 时长 |
+|------|------|------|
+| 保存成功 | "已保存" | 2.0s（≈ SHORT） |
+| 导入分享内容 | "已导入分享内容，请确认后保存" | 2.0s |
+| 文件已清空 | "文件内容已清空" | 2.0s |
+| 未配置文件 | "请先在设置中选择保存文件" | 3.5s（≈ LONG） |
+| 权限丢失 | "文件无写入权限，请重新选择" | 3.5s |
+| 保存失败（其他） | "保存失败：{原因}" | 3.5s |
+| 剪切板为空 | "剪切板为空，请先复制文字" | 3.5s |
+| 文件选择/创建失败 | "无法选择文件：{原因}" / "无法创建文件：{原因}" | 3.5s |
+
+**规格**：屏幕底部浮层，距底 16pt，左右留白 20pt；墨色 94% 背景，圆角 14pt，带阴影；左侧状态图标 18×18（成功绿色对勾 / 失败橙色警告）+ 白色 `.subheadline` 文字；spring 动画自底部移入；超时自动消失，点击可提前关闭。
+
+**保留 alert 的场景**（输入/确认类，与 Android 一致）：清空保存文件二次确认、新增分类、重命名分类。
+
+**Share Extension**：受系统 sheet 约束，无法浮在原 App 之上，呈现为 sheet 内居中胶囊（同款配色与图标），成功/失败停留 1.5s 后关闭。详见 [features/QS-0004/ui-ios-port.md](features/QS-0004/ui-ios-port.md)。
+
 ---
 
 ## 七、页面导航
@@ -423,3 +444,4 @@ Data Layer
 | `QS-0001` | MVP（剪切板保存、目标文件配置、清空、常驻通知） | 已交付 | [features/QS-0001/ui-mvp.md](features/QS-0001/ui-mvp.md) | [features/QS-0001/mockups/](features/QS-0001/mockups/) |
 | `QS-0002` | 手动输入保存（主页新增多行输入卡，Chip 行上移到最顶层） | 已交付 v1.2 | [features/QS-0002/ui-manual-input.md](features/QS-0002/ui-manual-input.md) | [features/QS-0002/mockups/](features/QS-0002/mockups/) |
 | `QS-0003` | 全局悬浮窗（贴边把手 + 横排面板 + 透明输入窗 + 录音态可视化）、设置页总开关、通知收成一条 | 已交付 v1.3 | [features/QS-0003/design-floating-window.md](features/QS-0003/design-floating-window.md) | — |
+| `QS-0004` | iOS 原生版（主页 / 设置页 / Share Extension），反馈改用自绘 Toast 浮层替代阻塞 alert | 已交付 v1.6 | [features/QS-0004/ui-ios-port.md](features/QS-0004/ui-ios-port.md) | — |
