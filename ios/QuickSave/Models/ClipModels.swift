@@ -27,6 +27,7 @@ struct EntryFormatter {
     func format(text: String, category: String?, date: Date = Date()) -> String {
         let formatter = DateFormatter()
         formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         let prefix = category.map { "[\($0)]" } ?? ""

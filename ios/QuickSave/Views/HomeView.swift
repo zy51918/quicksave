@@ -103,13 +103,7 @@ struct HomeView: View {
         } message: {
             Text("分类名不能为空或重复")
         }
-        .alert(item: $model.feedback) { feedback in
-            Alert(
-                title: Text(feedback.isError ? "操作失败" : "QuickSave"),
-                message: Text(feedback.message),
-                dismissButton: .default(Text("知道了"))
-            )
-        }
+        .quickSaveToast($model.feedback)
     }
 }
 

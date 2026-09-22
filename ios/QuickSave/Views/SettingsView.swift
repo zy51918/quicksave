@@ -11,7 +11,7 @@ struct SettingsView: View {
     @State private var categoryDraft = ""
     @State private var renamingCategory: String?
     @State private var renameDraft = ""
-    @State private var errorMessage: String?
+    @State private var errorMessage: Feedback?
 
     init(repository: ClipRepository) {
         _model = StateObject(wrappedValue: SettingsViewModel(repository: repository))
@@ -101,12 +101,12 @@ struct SettingsView: View {
                 let bookmark = try BookmarkFileDataSource.makeBookmark(for: url)
                 model.setTargetFile(bookmark: bookmark)
             } catch {
-                errorMessage = "无法选择文件：\(error.localizedDescription)"
+                errorMessage = Feedback(message: "无法选择文件：\(error.localizedDescription)", isError: true)
             }
         }
         .fileExporter(
             isPresented: $exportingFile,
-            document: $newDocument,
+            document: newDocument,
             contentType: .plainText,
             defaultFilename: "quicksave.txt"
         ) { result in
@@ -115,7 +115,7 @@ struct SettingsView: View {
                 let bookmark = try BookmarkFileDataSource.makeBookmark(for: url)
                 model.setTargetFile(bookmark: bookmark)
             } catch {
-                errorMessage = "无法创建文件：\(error.localizedDescription)"
+                errorMessage = Feedback(message: "无法创建文件：\(error.localizedDescription)", isError: true)
             }
         }
         .alert("新增分类", isPresented: $showingAddCategory) {
@@ -142,14 +142,7 @@ struct SettingsView: View {
         } message: {
             Text("分类名不能为空或重复")
         }
-        .alert("文件选择失败", isPresented: Binding(
-            get: { errorMessage != nil },
-            set: { if !$0 { errorMessage = nil } }
-        )) {
-            Button("知道了", role: .cancel) {}
-        } message: {
-            Text(errorMessage ?? "未知错误")
-        }
+        .quickSaveToast($errorMessage)
     }
 }
 

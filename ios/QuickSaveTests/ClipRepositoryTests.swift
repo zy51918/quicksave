@@ -31,10 +31,10 @@ final class ClipRepositoryTests: XCTestCase {
         let repository = makeRepository()
         let result = await repository.saveEntry(text: "text", category: nil)
 
-        XCTAssertEqual(result, .failure(.targetFileNotConfigured))
+        assertFailure(result, .targetFileNotConfigured)
     }
 
-    func testSaveAppendsFormattedLineAndValidatesCategory() async {
+    func testSaveAppendsFormattedLineAndValidatesCategory() async throws {
         let preferences = MemoryPreferencesStore()
         preferences.targetFileBookmark = Data([1])
         preferences.categories = ["学习"]
@@ -50,9 +50,24 @@ final class ClipRepositoryTests: XCTestCase {
             category: "不存在"
         )
 
-        XCTAssertEqual(result, .success(()))
+        assertSuccess(result)
         let lines = await files.appendedLines
-        XCTAssertEqual(lines, ["[1970-01-01 00:00:00] hello\n"])
+        // repository 内部使用当前时间，无法注入；断言时间戳格式、分类被丢弃、正文正确
+        XCTAssertEqual(lines.count, 1)
+        let line = try XCTUnwrap(lines.first)
+        XCTAssertTrue(
+            line.hasSuffix("] hello\n"),
+            "正文应为 hello，实际：\(line)"
+        )
+        XCTAssertFalse(
+            line.hasPrefix("[不存在]"),
+            "无效分类不应出现在前缀中，实际：\(line)"
+        )
+        let timestamp = line.dropFirst().prefix(while: { $0 != "]" })
+        XCTAssertNotNil(
+            timestamp.range(of: #"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"#, options: .regularExpression),
+            "时间戳格式应为 yyyy-MM-dd HH:mm:ss，实际：\(timestamp)"
+        )
     }
 
     func testClearDelegatesToFileDataSource() async {
@@ -63,7 +78,7 @@ final class ClipRepositoryTests: XCTestCase {
 
         let result = await repository.clearSavedFile()
 
-        XCTAssertEqual(result, .success(()))
+        assertSuccess(result)
         let clearCount = await files.clearCount
         XCTAssertEqual(clearCount, 1)
     }
@@ -77,7 +92,7 @@ final class ClipRepositoryTests: XCTestCase {
 
         let result = await repository.saveEntry(text: "text", category: nil)
 
-        XCTAssertEqual(result, .failure(.targetFileUnavailable))
+        assertFailure(result, .targetFileUnavailable)
     }
 
     private func makeRepository() -> ClipRepositoryImpl {
@@ -88,6 +103,31 @@ final class ClipRepositoryTests: XCTestCase {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
         return calendar
+    }
+}
+
+// Void 在新版 Swift 中不再满足 Equatable，改用模式匹配断言 Result
+private func assertSuccess(
+    _ result: Result<Void, ClipError>,
+    file: StaticString = #filePath,
+    line: UInt = #line
+) {
+    if case .failure(let error) = result {
+        XCTFail("期望成功，实际失败：\(error)", file: file, line: line)
+    }
+}
+
+private func assertFailure(
+    _ result: Result<Void, ClipError>,
+    _ expected: ClipError,
+    file: StaticString = #filePath,
+    line: UInt = #line
+) {
+    switch result {
+    case .success:
+        XCTFail("期望失败 \(expected)，实际成功", file: file, line: line)
+    case .failure(let error):
+        XCTAssertEqual(error, expected, file: file, line: line)
     }
 }
 

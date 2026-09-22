@@ -24,7 +24,12 @@ actor BookmarkFileDataSource: FileDataSource {
             throw FileDataSourceError.inaccessible
         }
         defer { url.stopAccessingSecurityScopedResource() }
+        #if os(macOS)
         return try url.bookmarkData(options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil)
+        #else
+        // iOS 上安全作用域信息自动包含在 bookmark 中，withSecurityScope 选项不可用
+        return try url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+        #endif
     }
 
     func appendLine(_ line: String, to bookmark: Data) async throws {

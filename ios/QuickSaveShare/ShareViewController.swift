@@ -2,36 +2,62 @@ import UIKit
 import UniformTypeIdentifiers
 
 final class ShareViewController: UIViewController {
-    private let statusLabel = UILabel()
+    private let toast = UIView()
+    private let iconView = UIImageView()
+    private let messageLabel = UILabel()
+
+    /// 与主 App `QuickSaveStyle` 的配色保持一致（Extension 是独立 target，无法直接复用）
+    private enum Palette {
+        static let ink = UIColor(red: 0.063, green: 0.165, blue: 0.212, alpha: 0.94)
+        static let message = UIColor.white
+        static let success = UIColor(red: 0.737, green: 0.914, blue: 0.894, alpha: 1)
+        static let failure = UIColor(red: 1.0, green: 0.855, blue: 0.827, alpha: 1)
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
-        configureView()
+        // 透明背景 + 居中胶囊，让 Extension 呈现为浮层提示而非整页
+        view.backgroundColor = .clear
+        configureToast()
+        showToast(message: "正在保存分享内容…", state: .loading)
         loadSharedText()
     }
 
-    private func configureView() {
-        let titleLabel = UILabel()
-        titleLabel.text = "QuickSave"
-        titleLabel.font = .preferredFont(forTextStyle: .headline)
-        titleLabel.textAlignment = .center
+    private func configureToast() {
+        toast.backgroundColor = Palette.ink
+        toast.layer.cornerRadius = 14
+        toast.layer.cornerCurve = .continuous
+        toast.translatesAutoresizingMaskIntoConstraints = false
+        toast.alpha = 0
 
-        statusLabel.text = "正在保存分享内容…"
-        statusLabel.textAlignment = .center
-        statusLabel.numberOfLines = 0
-        statusLabel.textColor = .secondaryLabel
+        iconView.contentMode = .scaleAspectFit
+        iconView.setContentHuggingPriority(.required, for: .horizontal)
+        iconView.setContentCompressionResistancePriority(.required, for: .horizontal)
+        iconView.widthAnchor.constraint(equalToConstant: 18).isActive = true
+        iconView.heightAnchor.constraint(equalToConstant: 18).isActive = true
 
-        let stack = UIStackView(arrangedSubviews: [titleLabel, statusLabel])
-        stack.axis = .vertical
-        stack.spacing = 18
-        stack.alignment = .fill
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(stack)
+        messageLabel.font = .preferredFont(forTextStyle: .subheadline)
+        messageLabel.textColor = .white
+        messageLabel.numberOfLines = 0
+
+        let row = UIStackView(arrangedSubviews: [iconView, messageLabel])
+        row.axis = .horizontal
+        row.spacing = 10
+        row.alignment = .center
+        row.translatesAutoresizingMaskIntoConstraints = false
+        toast.addSubview(row)
+        view.addSubview(toast)
+
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
-            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
-            stack.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            row.leadingAnchor.constraint(equalTo: toast.leadingAnchor, constant: 14),
+            row.trailingAnchor.constraint(equalTo: toast.trailingAnchor, constant: -14),
+            row.topAnchor.constraint(equalTo: toast.topAnchor, constant: 12),
+            row.bottomAnchor.constraint(equalTo: toast.bottomAnchor, constant: -12),
+
+            toast.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            toast.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            toast.leadingAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 24),
+            toast.trailingAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -24)
         ])
     }
 
@@ -94,10 +120,41 @@ final class ShareViewController: UIViewController {
         }
     }
 
+    private enum ToastState {
+        case loading
+        case success
+        case failure
+
+        var icon: UIImage? {
+            switch self {
+            case .loading: return UIImage(systemName: "ellipsis.circle")
+            case .success: return UIImage(systemName: "checkmark.circle.fill")
+            case .failure: return UIImage(systemName: "exclamationmark.triangle.fill")
+            }
+        }
+
+        var iconColor: UIColor {
+            switch self {
+            case .loading: return Palette.message
+            case .success: return Palette.success
+            case .failure: return Palette.failure
+            }
+        }
+    }
+
+    private func showToast(message: String, state: ToastState) {
+        iconView.image = state.icon
+        iconView.tintColor = state.iconColor
+        messageLabel.text = message
+        UIView.animate(withDuration: 0.2) { self.toast.alpha = 1 }
+    }
+
     private func finish(with message: String, success: Bool) {
-        statusLabel.text = message
-        statusLabel.textColor = success ? .systemGreen : .systemRed
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
+        showToast(message: message, state: success ? .success : .failure)
+
+        // Android 端分享结果用 Toast.LENGTH_SHORT(2s)，但其 Toast 不阻塞界面；
+        // iOS sheet 会遮住原 App，故略缩短为 1.5s
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
             guard let self else { return }
             if success {
                 self.extensionContext?.completeRequest(returningItems: nil)

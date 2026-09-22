@@ -32,8 +32,7 @@ final class HomeViewModelTests: XCTestCase {
         viewModel.selectCategory("工作")
 
         viewModel.saveManualInput()
-        await Task.yield()
-        await Task.yield()
+        await waitUntil { !viewModel.isManualSaving && viewModel.feedback != nil }
 
         XCTAssertEqual(repository.lastText, "记录内容")
         XCTAssertEqual(repository.lastCategory, "工作")
@@ -53,8 +52,7 @@ final class HomeViewModelTests: XCTestCase {
         viewModel.manualInputText = "保留我"
 
         viewModel.saveManualInput()
-        await Task.yield()
-        await Task.yield()
+        await waitUntil { !viewModel.isManualSaving && viewModel.feedback != nil }
 
         XCTAssertEqual(viewModel.manualInputText, "保留我")
         XCTAssertEqual(viewModel.feedback?.message, "请先在设置中选择保存文件")
@@ -70,6 +68,22 @@ final class HomeViewModelTests: XCTestCase {
         viewModel.refreshClipboard()
 
         XCTAssertEqual(viewModel.clipText, "剪切板内容")
+    }
+}
+
+/// 轮询等待异步保存完成：ViewModel 内部起 Task，固定次数的 Task.yield() 不保证完成
+@MainActor
+private func waitUntil(
+    timeout: TimeInterval = 2,
+    _ condition: @MainActor () -> Bool
+) async {
+    let deadline = Date().addingTimeInterval(timeout)
+    while !condition() {
+        if Date() >= deadline {
+            XCTFail("等待条件超时（\(timeout)s）")
+            return
+        }
+        await Task.yield()
     }
 }
 

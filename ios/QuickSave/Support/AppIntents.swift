@@ -12,13 +12,11 @@ struct OpenQuickSaveIntent: AppIntent {
 
 struct QuickSaveShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
-        [
-            AppShortcut(
-                intent: OpenQuickSaveIntent(),
-                phrases: ["打开 \(.applicationName)"],
-                shortTitle: "打开 QuickSave",
-                systemImageName: "archivebox"
-            )
-        ]
+        AppShortcut(
+            intent: OpenQuickSaveIntent(),
+            phrases: ["打开 \(.applicationName)"],
+            shortTitle: "打开 QuickSave",
+            systemImageName: "archivebox"
+        )
     }
 }
