@@ -1,5 +1,7 @@
 # ARCH Changelist
 
+## [2026-09-22] [QS-0005] 新增 iOS 快捷入口架构（规划中），项目级 ARCH 升 v1.4：新增 `QuickSaveWidget` Widget Extension target（部署目标单独 iOS 18.0，主 App 保持 16.0）；`SaveClipboardIntent` 承载控件动作，完全复用 QS-0004 的 ClipRepository/BookmarkFileDataSource/App Group，业务层以源文件多 target 归属共享；App Group 新增 `last_quick_save_result` 键承载失败待办提示（UI 文档 L3 层）。架构采用「形态无关」设计：静默保存与打开 App 保存共用同一 Intent，仅由 `openAppWhenRun` 切换，因最大风险（扩展读剪切板是否触发系统粘贴授权提示）需真机实测。关键 API 结论来自本地 iOS 27.0 SDK swiftinterface 查证；§十一 索引追加 QS-0005，新增 §十二 iOS 快捷入口架构说明。
+
 ## [2026-09-21] [QS-0004] 新增 iOS 原生版架构：SwiftUI + Repository/DataSource 分层、security-scoped bookmark 文件访问、Share Extension/App Group 跨 App 文字入口与 App Intents 快捷入口；明确 iOS 不实现 Android 全局悬浮窗、常驻通知和后台剪切板轮询，录音延期单独评审，项目级 ARCH 升级并追加 iOS 架构说明。
 
 ## [2026-06-11] [QS-0003] 全局悬浮窗合入 main，**有架构变更**，项目级 ARCH 升 v1.3：新增 `overlay/`、`recorder/` 包；新增 OverlayService（非前台）/RecorderService（mic 前台）/RecordingController（StateFlow 桥）/OverlayRepository/InputActivity/RecordPermissionActivity；§一 技术栈补 WindowManager/MediaRecorder/MediaStore；§四 增 OverlayRepository、RecordingController、录音输出协议与 3 个 DataStore 键；§七 增 overlayRepository 与启停流程；§八 增 SYSTEM_ALERT_WINDOW/RECORD_AUDIO/FOREGROUND_SERVICE_MICROPHONE 并注明 OverlayService 非前台；§十 索引追加 QS-0003（架构变更=有，以 design-floating-window.md 承载）。

@@ -34,6 +34,20 @@
                ReferencedContainer = "container:QuickSave.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A50000000000000000000005"
+               BuildableName = "QuickSaveUITests.xctest"
+               BlueprintName = "QuickSaveUITests"
+               ReferencedContainer = "container:QuickSave.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -49,6 +63,16 @@
                BlueprintIdentifier = "A50000000000000000000003"
                BuildableName = "QuickSaveTests.xctest"
                BlueprintName = "QuickSaveTests"
+               ReferencedContainer = "container:QuickSave.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A50000000000000000000005"
+               BuildableName = "QuickSaveUITests.xctest"
+               BlueprintName = "QuickSaveUITests"
                ReferencedContainer = "container:QuickSave.xcodeproj">
             </BuildableReference>
          </TestableReference>

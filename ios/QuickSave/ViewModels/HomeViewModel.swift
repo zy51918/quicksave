@@ -1,18 +1,4 @@
 import Foundation
-import UIKit
-
-protocol ClipboardReading {
-    func readString() -> String?
-}
-
-struct SystemClipboardReader: ClipboardReading {
-    func readString() -> String? {
-        guard let text = UIPasteboard.general.string,
-              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        else { return nil }
-        return text
-    }
-}
 
 @MainActor
 final class HomeViewModel: ObservableObject {
@@ -29,16 +15,19 @@ final class HomeViewModel: ObservableObject {
     private let repository: ClipRepository
     private let clipboard: ClipboardReading
     private let payloads: SharedPayloadStoring
+    private let quickSaveResults: QuickSaveResultStoring
     private var preferenceObserver: NSObjectProtocol?
 
     init(
         repository: ClipRepository,
         clipboard: ClipboardReading = SystemClipboardReader(),
-        payloads: SharedPayloadStoring
+        payloads: SharedPayloadStoring,
+        quickSaveResults: QuickSaveResultStoring = QuickSaveResultStore()
     ) {
         self.repository = repository
         self.clipboard = clipboard
         self.payloads = payloads
+        self.quickSaveResults = quickSaveResults
         reloadPreferences()
         preferenceObserver = NotificationCenter.default.addObserver(
             forName: .quickSavePreferencesDidChange,
@@ -65,6 +54,15 @@ final class HomeViewModel: ObservableObject {
         guard let text = payloads.consume() else { return }
         manualInputText = text
         feedback = Feedback(message: "已导入分享内容，请确认后保存", isError: false)
+    }
+
+    /// 消费控制中心控件留下的保存结果（L3 待办提示）。
+    ///
+    /// 只在失败时提示：成功时用户已通过控件态或 App 内 Toast 得知，无需重复打扰；
+    /// 而失败若无人提示，就会变成「以为存了其实没存」的静默丢失。
+    func consumeQuickSaveResult() {
+        guard let result = quickSaveResults.consume(), !result.succeeded else { return }
+        feedback = Feedback(message: result.message ?? "保存失败", isError: true)
     }
 
     func reloadPreferences() {

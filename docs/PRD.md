@@ -1,7 +1,7 @@
 # QuickSave — 产品需求文档（PRD）
 
-> 版本：1.4
-> 日期：2026-08-18
+> 版本：1.5
+> 日期：2026-09-22
 > 作者：产品经理
 
 ---
@@ -81,6 +81,23 @@ QuickSave 是一款 Android 工具类应用，让用户随时将剪切板中的�
 | US-S04 | 作为用户，我希望不支持的图片、文件或多条分享不会被误保存。 | 拒绝 `ACTION_SEND_MULTIPLE`、`EXTRA_STREAM`、Uri ClipData、多 item ClipData、图片/文件 MIME 和仅 HTML 内容 |
 
 > 当前状态：已实现并合入 `main`（2026-08-18）。当前规范：[`docs/superpowers/specs/2026-08-18-qs-0004-share-text.md`](superpowers/specs/2026-08-18-qs-0004-share-text.md)
+
+### 3.6 iOS 快捷入口（QS-0005）
+
+iOS 没有 Android 悬浮窗那种「任意 App 之上常驻悬浮 UI」的公开能力，本 feature 用合规入口提供接近的「随时一键」体验。
+
+| # | 用户故事 | 验收条件 |
+|---|---------|---------|
+| US-Q01 | 作为用户，我希望把 QuickSave 添加到**控制中心**，一键触发。 | 控制中心「控制」分组可找到并添加 QuickSave 控件 |
+| US-Q02 | 作为用户，我希望点击控制中心控件后**立即保存当前剪切板文字**，不必先打开 App。 | 剪切板非空时按当前分类与格式追加写入，并反馈「已保存」 |
+| US-Q03 | 作为用户，我希望控件的**状态能反映是否可保存**。 | 未配置目标文件时呈现不可用态，点击反馈「请先在设置中选择保存文件」 |
+| US-Q04 | 作为用户，我希望**不想用控制中心时可用 Siri / 快捷指令**打开 QuickSave。 | 现有 `OpenQuickSaveIntent` 可用；Siri 短语可唤起 App |
+| US-Q05 | 作为用户，我希望快捷入口**不破坏现有操作习惯**。 | 主页 / 设置页 / Share Extension 无行为回归 |
+| US-Q06 | 作为用户，我希望**低版本系统仍可用 QuickSave**。 | iOS 17 及以下不出现控件入口，主 App 与 Share Extension 完整可用 |
+
+> 设计文档：[`docs/features/QS-0005/prd-ios-quick-entry.md`](features/QS-0005/prd-ios-quick-entry.md) · 规划 v1.5（2026-09-22）
+> 关键约束：控制中心控件需 iOS 18+；控件 Intent 能否在后台完成文件写入由 `/dev` 架构阶段实测，两种形态（静默保存 / 打开 App 保存）均可接受。
+
 ## 四、功能范围
 
 ### 4.1 已交付（MVP）
@@ -139,7 +156,19 @@ QuickSave 是一款 Android 工具类应用，让用户随时将剪切板中的�
 | 结果反馈 | 成功或失败 Toast 后返回原 App，不打开 QuickSave 主页 |
 
 > 归档规范：[`docs/superpowers/specs/2026-08-18-qs-0004-share-text.md`](superpowers/specs/2026-08-18-qs-0004-share-text.md) · 合入 `main`：2026-08-18
-### 4.6 不在当前范围
+
+### 4.6 规划中（iOS 快捷入口 v1.5 — QS-0005）
+
+| 功能 | 描述 |
+|------|------|
+| 控制中心控件 | iOS 18+ 提供可添加到控制中心的 QuickSave 控件，一键保存剪切板文字 |
+| 保存 App Intent | 复用 `ClipRepository.saveEntry`，经 App Group 读取目标文件与当前分类 |
+| 降级处理 | iOS 17 及以下不提供控件入口；未配置目标文件时控件呈不可用态 |
+
+> PRD：[`docs/features/QS-0005/prd-ios-quick-entry.md`](features/QS-0005/prd-ios-quick-entry.md) · 规划 v1.5（2026-09-22）
+> 明确排除：复刻 Android 悬浮窗（iOS 无公开 API）、画中画挪作悬浮窗、锁屏常驻富交互面板、控件内联输入。
+
+### 4.7 不在当前范围
 
 - 剪切板自动监听（复制即自动保存）
 - 悬浮窗自定义按钮（用户自定义 toggle / 启动其他 App）
@@ -265,6 +294,24 @@ Toast「已保存」或错误原因
 ```
 
 ---
+
+### 流程 H：iOS 控制中心一键保存（QS-0005）
+
+```
+用户在其他 App 复制文字
+       ↓
+下拉控制中心，点击 QuickSave 控件
+       ↓
+读取 App Group 中的目标文件 bookmark 与 selectedCategory
+       ↓
+追加写入目标文件（格式同主 App）
+       ↓
+反馈「已保存」，用户停留在原 App
+```
+
+> 若系统要求拉起 App 才能执行写入，则流程为「点击控件 → 打开 QuickSave → 自动保存并反馈」，仍少于「找图标 → 打开 → 点保存」。可接受形态详见 [prd-ios-quick-entry.md](features/QS-0005/prd-ios-quick-entry.md) §5.1。
+
+---
 ## 六、边界条件 & 异常处理
 
 | 场景 | 期望行为 |
@@ -290,6 +337,10 @@ Toast「已保存」或错误原因
 | 麦克风被占用 / 录音启动失败 | Toast 提示，不进入录音态 |
 | 录音中被系统抢占（来电等） | 停止录制并保留已录片段 |
 | 把手拖出屏幕 | 限制在可视范围，松手吸附最近左/右边 |
+| 控制中心控件：未配置目标文件 | 反馈「请先在设置中选择保存文件」，不写入、不崩溃 |
+| 控制中心控件：扩展进程无法访问 bookmark | 反馈引导文案并指向主 App，不静默失败 |
+| 控制中心控件：系统版本 < iOS 18 | 不提供控件入口，主 App 功能不受影响 |
+| 控制中心控件：连续快速点击 | 写入串行，无重复记录、无文件损坏 |
 
 ---
 
@@ -298,6 +349,7 @@ Toast「已保存」或错误原因
 | 项目 | 要求 |
 |------|------|
 | 最低 Android 版本 | Android 10（API 29） |
+| 最低 iOS 版本 | iOS 16.0（主 App）；控制中心控件按 iOS 18+ 条件提供 |
 | 文件格式 | 纯文本，UTF-8，换行分隔；格式 `[分类][时间戳] 内容` 或 `[时间戳] 内容` |
 | 录音格式 | AAC / MPEG-4 容器（`.m4a`），经 MediaStore 存入公共 `Music/QuickSave/` |
 | 权限最小化 | 仅申请功能必须的权限（悬浮窗、录音为对应功能开启时才申请） |

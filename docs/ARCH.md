@@ -1,7 +1,7 @@
 # QuickSave — 架构设计文档（ARCH）
 
-> 版本：1.3
-> 日期：2026-06-11
+> 版本：1.4
+> 日期：2026-09-22
 > 作者：开发工程师
 
 本文档描述 QuickSave Android 应用的项目级架构现状，反映已交付的 MVP（QS-0001）、分类标签（category-tag）、手动输入（QS-0002）与全局悬浮窗（QS-0003，含文字输入 + 录音）合并后的代码组织。Feature 级架构变更详见 [`docs/ARCH_changelist.md`](ARCH_changelist.md) 与 `docs/features/<feature_id>/arch-<feature_name>.md`。
@@ -289,9 +289,20 @@ val overlayRepository: OverlayRepository by lazy { OverlayRepositoryImpl(dataSto
 | `QS-0002` | 手动输入保存（v1.2，已交付） | **无** — 仅 UI 层增量（HomeUiState 字段拆分、HomeScreen 抽出 3 个 Composable）；Repository / DataStore / Service / 跨模块协议全部不变 | — |
 | `QS-0003` | 全局悬浮窗 + 文字输入 + 录音（v1.3，已交付） | **有** — 新增 `overlay/` 与 `recorder/` 包、`OverlayService`（非前台）/`RecorderService`（mic 前台）/`RecordingController`、`OverlayRepository`、`InputActivity`/`RecordPermissionActivity`；DataStore 增 3 键；新增 `SYSTEM_ALERT_WINDOW`/`RECORD_AUDIO`/`FOREGROUND_SERVICE_MICROPHONE` 权限；常驻通知由两条收成一条 | [features/QS-0003/design-floating-window.md](features/QS-0003/design-floating-window.md) |
 | `QS-0004` | iOS 原生版（主页、分类、用户选定文件、手动/剪切板保存、Share Extension；录音延期） | **有** — 新增 SwiftUI 主 App、Share Extension、security-scoped bookmark 文件层与 App Group；iOS 不实现 Android 全局悬浮窗/常驻通知，改用公开系统入口；录音另行评审 | [features/QS-0004/arch-ios-port.md](features/QS-0004/arch-ios-port.md) |
+| `QS-0005` | iOS 快捷入口（控制中心控件 iOS 18+；规划中） | **有** — 新增 `QuickSaveWidget` Widget Extension target（部署目标单独 18.0，主 App 保持 16.0）；新增 `SaveClipboardIntent` 与控件定义；业务层（ClipModels/PreferencesStore/BookmarkFileDataSource/ClipRepository/SharedPayloadStore）以源文件多 target 归属复用；App Group 新增 `last_quick_save_result` 键用于失败待办提示（L3）；不新增权限、不引入第二套存储 | [features/QS-0005/arch-ios-quick-entry.md](features/QS-0005/arch-ios-quick-entry.md) |
 
 ### 十一、iOS 版架构说明（QS-0004）
 
 QS-0004 与 Android 代码并存但分 target 实现。iOS 版采用 SwiftUI + ObservableObject + Repository/DataSource 分层，保存格式与分类语义保持一致；文件访问使用 security-scoped bookmark。由于 iOS 没有公开的跨 App 悬浮窗、常驻前台通知或后台剪切板轮询能力，跨 App 文字入口采用 Share Extension，快捷入口采用 App Intents/Shortcuts；不使用私有 API。录音功能按用户决定延期，不包含在本阶段实现。
 
 > 后续 feature 若引入架构变更（新增模块、修改跨层协议），需在本表追加并新建 `arch-<feature_name>.md`（QS-0003 以 brainstorming 流程的 `design-floating-window.md` 承载架构说明）。仅做实现变更（不动接口）的 feature 在表中标注「无」即可，不需要单独的 arch 文档。
+
+### 十二、iOS 快捷入口架构说明（QS-0005，规划中）
+
+在 QS-0004 的 iOS 版基础上新增第三个 target：`QuickSaveWidget`（Widget Extension），部署目标**单独设为 iOS 18.0**（控制中心控件的最低要求），主 App 与 Share Extension 保持 iOS 16.0 —— 低版本设备不加载控件扩展，主 App 功能不受影响。
+
+控件动作由 `SaveClipboardIntent` 承载，保存链路**完全复用** QS-0004 的 `ClipRepositoryImpl` / `BookmarkFileDataSource` / App Group 配置，不新增第二套存储。业务层源文件以「多 target 归属」方式共享（与 Share Extension 既有做法一致），不抽 Swift Package。
+
+架构采用**形态无关**设计：静默保存与「打开 App 保存」两种候选交互形态共用同一 Intent 实现，仅由 `openAppWhenRun` 一个静态属性切换。原因是最大风险项 —— **扩展进程读取剪切板可能触发系统粘贴授权提示** —— 需真机实测才能确定；该开关使实测结论不影响架构（详见 feature 架构文档 §十一 R1）。
+
+关键 API 结论均来自本地 iOS 27.0 SDK `.swiftinterface` 头文件查证：`ControlWidget`/`ControlWidgetButton`/`StaticControlConfiguration` 自 iOS 18.0 起提供；`AppIntent.openAppWhenRun` 默认为 `false`（后台执行为默认），iOS 26 起由 `supportedModes` 取代；`IntentExecutionTargets` 显式包含 `.widgetKitExtension`，说明控件扩展内执行 Intent 是受支持路径。不新增运行时权限，不使用私有 API。

@@ -1,6 +1,6 @@
 # QuickSave — UI 交互设计文档（UI）
 
-> 版本：1.6
+> 版本：1.7
 > 日期：2026-09-22
 > 作者：HIE 设计师
 
@@ -371,6 +371,30 @@ iOS 无公开的系统级 Toast API，主 App 内以自绘浮层 `QuickSaveToast
 
 **Share Extension**：受系统 sheet 约束，无法浮在原 App 之上，呈现为 sheet 内居中胶囊（同款配色与图标），成功/失败停留 1.5s 后关闭。详见 [features/QS-0004/ui-ios-port.md](features/QS-0004/ui-ios-port.md)。
 
+### 6.3 iOS 快捷入口（v1.7，QS-0005）
+
+iOS 无 Android 悬浮窗的跨 App 常驻自绘层，改用**控制中心控件**（`ControlWidget`，iOS 18+）作为最接近的合规入口。
+
+**控件状态**
+
+| 状态 | 符号 | 标题 | 颜色 |
+|---|---|---|---|
+| 就绪 | `archivebox.fill` | 保存剪切板 | `quickSaveTeal` |
+| 未配置 | `archivebox` + `exclamationmark` 角标 | 去设置 | `quickSaveCoral` |
+| 保存中 | 过渡态 | 保存中 | `quickSaveInkSoft` |
+| 刚成功 | `checkmark.circle.fill` | 已保存 | `quickSaveTeal`（约 2s 回落） |
+| 刚失败 | `exclamationmark.circle.fill` | 未保存 | `quickSaveCoral`（约 3.5s 回落） |
+
+**反馈分层**：控件触发后控制中心立即收起，**不存在**浮在原 App 之上的 Toast。反馈按三层呈现 —— L1 控件自身状态变化（始终）、L2 主 App 内 Toast（App 被拉起时）、L3 主 App 内待办提示（静默保存失败且用户未察觉时，下次进入 App 提示一次并消费）。文案与时长沿用 §6.2。
+
+**不采用的反馈形态**：系统通知（需额外权限且打断）、Live Activity（生命周期语义不匹配）、音效/震动（控件 Intent 内不保证可触发）、打开 App 再自动返回（比不反馈更差）。
+
+**设置页引导**：新增「快捷入口」区块，图文说明添加步骤。iOS **无公开 API** 可从 App 内跳转控制中心或编程添加控件，故按钮降级为静态引导，不做假承诺。iOS 17 及以下显示「需要 iOS 18 及以上系统」说明。
+
+**与 Android 悬浮窗的能力落差**：触发步数持平（下拉+点控件 = 点把手+点按钮，均 2 步）；落差在于**无内联输入框、无内联分类选择**（控件不支持富 UI）。详见 [features/QS-0005/ui-ios-quick-entry.md](features/QS-0005/ui-ios-quick-entry.md)。
+
+> **待验证**：控件 Intent 能否在不打开 App 的前提下完成文件写入尚未实测。若结论为必须打开 App，则 L1 层失效，反馈全部落到 L2，交互等效于「点击控件 → 打开 App → 自动保存并反馈」，本节需回修。
+
 ---
 
 ## 七、页面导航
@@ -445,3 +469,4 @@ Data Layer
 | `QS-0002` | 手动输入保存（主页新增多行输入卡，Chip 行上移到最顶层） | 已交付 v1.2 | [features/QS-0002/ui-manual-input.md](features/QS-0002/ui-manual-input.md) | [features/QS-0002/mockups/](features/QS-0002/mockups/) |
 | `QS-0003` | 全局悬浮窗（贴边把手 + 横排面板 + 透明输入窗 + 录音态可视化）、设置页总开关、通知收成一条 | 已交付 v1.3 | [features/QS-0003/design-floating-window.md](features/QS-0003/design-floating-window.md) | — |
 | `QS-0004` | iOS 原生版（主页 / 设置页 / Share Extension），反馈改用自绘 Toast 浮层替代阻塞 alert | 已交付 v1.6 | [features/QS-0004/ui-ios-port.md](features/QS-0004/ui-ios-port.md) | — |
+| `QS-0005` | iOS 快捷入口（控制中心控件 iOS 18+、设置页引导区块、分层反馈策略） | 规划中 v1.7 | [features/QS-0005/ui-ios-quick-entry.md](features/QS-0005/ui-ios-quick-entry.md) | [features/QS-0005/mockups/](features/QS-0005/mockups/) |

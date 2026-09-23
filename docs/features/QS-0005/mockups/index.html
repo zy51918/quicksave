@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickSave QS-0005 (iOS Quick Entry) — UI Mockups</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #EDF1F1;
+      font-family: system-ui, -apple-system, 'PingFang SC', 'Roboto', sans-serif;
+      padding: 32px 24px 64px;
+    }
+    h1 { font-size: 24px; font-weight: 600; color: #102A36; margin-bottom: 4px; }
+    .meta { font-size: 13px; color: #45616A; margin-bottom: 24px; }
+
+    .callout {
+      background: #FFFFFF;
+      border-left: 4px solid #087F7B;
+      padding: 14px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #45616A;
+      margin-bottom: 16px;
+    }
+    .callout b { color: #102A36; }
+    .callout.warn { border-left-color: #B94D3D; background: #FFF8F6; }
+    .callout.warn b { color: #B94D3D; }
+
+    h2 {
+      font-size: 15px; font-weight: 600; color: #102A36;
+      margin: 36px 0 4px; padding-bottom: 8px;
+      border-bottom: 1px solid #D8DEDE;
+    }
+    h2 .tag {
+      font-size: 11px; font-weight: 500; color: #087F7B;
+      background: #E6F4F3; border-radius: 999px;
+      padding: 2px 9px; margin-left: 8px; vertical-align: 2px;
+    }
+    h2 + .sub { font-size: 12px; color: #7C8B91; margin: 8px 0 0; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 28px;
+      justify-items: center;
+      margin-top: 20px;
+    }
+    .grid.wide { grid-template-columns: 1fr; justify-items: stretch; }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(16,42,54,0.10), 0 8px 24px rgba(16,42,54,0.07);
+      width: 100%;
+      max-width: 420px;
+    }
+    .card img { display: block; width: 100%; height: auto; }
+    .label {
+      padding: 11px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #087F7B;
+      border-top: 1px solid #E4E9E9;
+      background: #FBFDFD;
+      text-align: center;
+    }
+    .note {
+      padding: 9px 16px 13px;
+      font-size: 11.5px;
+      line-height: 1.6;
+      color: #7C8B91;
+      background: #FBFDFD;
+      text-align: center;
+    }
+
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 12.5px; margin-top: 18px;
+      background: #FFF; border-radius: 10px; overflow: hidden;
+    }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #EDF1F1; }
+    th { background: #F4F7F7; font-weight: 600; color: #102A36; font-size: 12px; }
+    td { color: #45616A; }
+    td:first-child { font-weight: 600; color: #102A36; white-space: nowrap; }
+    tr:last-child td { border-bottom: none; }
+    .swatch {
+      display: inline-block; width: 11px; height: 11px;
+      border-radius: 3px; margin-right: 6px; vertical-align: -1px;
+    }
+  </style>
+</head>
+<body>
+  <h1>QuickSave QS-0005 — iOS 快捷入口 UI 原型</h1>
+  <p class="meta">HIE 设计师输出 · 2026-09-22 · 规划中 v1.7 · 参考 docs/features/QS-0005/ui-ios-quick-entry.md</p>
+
+  <div class="callout">
+    <b>背景：</b>iOS 第三方 App <b>没有</b> Android 悬浮窗那种「任意 App 之上常驻自绘 UI」的公开能力。
+    本 feature 用<b>控制中心控件</b>（<code>ControlWidget</code>，iOS 18+）作为最接近的合规入口。
+  </div>
+
+  <div class="callout warn">
+    <b>⚠ 关键未决项 —— 请重点看这一处：</b>
+    控件触发后<b>控制中心立即收起</b>，用户已回到原来的 App，此时 App 没有任何可绘制的界面。
+    因此 Android 那种「浮在原 App 上的 Toast」在控件路径下<b>不存在</b>。
+    反馈能否做到「静默保存 + 控件态提示」，取决于一个<b>尚未实测</b>的前提：控件 Intent 能否在不打开 App 的情况下完成文件写入。
+    下面第 ③ 节把两种可能的交互形态都画出来了，请确认是否接受。
+  </div>
+
+  <h2>① 控制中心控件五态 <span class="tag">iOS 18+</span></h2>
+  <p class="sub">控件位由系统渲染，App 只提供图标、色值与标题。控件不支持富 UI —— 无内联输入框、无分类选择器。</p>
+  <div class="grid wide">
+    <div class="card">
+      <img src="control-states.svg" alt="控制中心控件五态">
+      <div class="label">就绪 / 未配置 / 保存中 / 刚成功 / 刚失败</div>
+      <div class="note">「未配置」态用角标而非替换图标，保留 archivebox 的识别连续性</div>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>状态</th><th>符号</th><th>标题</th><th>颜色</th><th>点击行为</th></tr>
+    <tr>
+      <td>就绪</td><td>archivebox.fill</td><td>保存剪切板</td>
+      <td><span class="swatch" style="background:#087F7B"></span>teal</td>
+      <td>保存当前剪切板文字</td>
+    </tr>
+    <tr>
+      <td>未配置</td><td>archivebox + ! 角标</td><td>去设置</td>
+      <td><span class="swatch" style="background:#B94D3D"></span>coral</td>
+      <td>打开 App 并直达设置页</td>
+    </tr>
+    <tr>
+      <td>保存中</td><td>过渡态 + 转圈</td><td>保存中</td>
+      <td><span class="swatch" style="background:#45616A"></span>inkSoft</td>
+      <td>忽略重复点击（写入串行）</td>
+    </tr>
+    <tr>
+      <td>刚成功</td><td>checkmark.circle.fill</td><td>已保存</td>
+      <td><span class="swatch" style="background:#087F7B"></span>teal</td>
+      <td>约 2s 后回落就绪</td>
+    </tr>
+    <tr>
+      <td>刚失败</td><td>exclamationmark.circle.fill</td><td>未保存</td>
+      <td><span class="swatch" style="background:#B94D3D"></span>coral</td>
+      <td>约 3.5s 后回落，可重试</td>
+    </tr>
+  </table>
+
+  <h2>② 设置页「快捷入口」区块 <span class="tag">主 App</span></h2>
+  <p class="sub">用户不会自发发现控制中心可添加控件，因此设置页新增引导区块。两种系统版本各出一图。</p>
+  <div class="grid">
+    <div class="card">
+      <img src="settings-quick-entry-ios18.svg" alt="设置页 iOS 18 引导">
+      <div class="label">① iOS 18+ · 引导图文</div>
+      <div class="note">iOS 无公开 API 从 App 内跳控制中心，因此按钮降级为静态图文 —— 不做假承诺</div>
+    </div>
+    <div class="card">
+      <img src="settings-quick-entry-ios17.svg" alt="设置页 iOS 17 降级">
+      <div class="label">② iOS 17 及以下 · 降级说明</div>
+      <div class="note">仅提示系统要求，不显示引导步骤、不放无效按钮；主 App 功能不受影响</div>
+    </div>
+  </div>
+
+  <h2>③ 两种候选交互形态 <span class="tag">待决策</span></h2>
+  <p class="sub">取决于「控件能否后台写文件」的实测结论。形态一为首选；若系统强制拉起 App，则退化为形态二。</p>
+  <div class="grid wide">
+    <div class="card">
+      <img src="interaction-forms.svg" alt="两种候选交互形态对比">
+      <div class="label">形态一（静默保存，首选） vs 形态二（打开 App 保存，降级）</div>
+      <div class="note">两种形态的触发步数相同（均为 2 步），差异在于是否打断用户当前上下文</div>
+    </div>
+  </div>
+
+  <h2>④ 反馈分层 <span class="tag">待决策</span></h2>
+  <p class="sub">控件触发后无可绘制界面，反馈必须分层承接。L3 是我主动补的一层，用于防「以为存了其实没存」。</p>
+  <div class="grid wide">
+    <div class="card">
+      <img src="feedback-layers.svg" alt="反馈分层策略">
+      <div class="label">L1 控件态 / L2 App 内 Toast / L3 待办失败提示</div>
+      <div class="note">L3 为必要项：L1 需主动下拉才可见，L2 在静默形态下不触发，二者都会漏掉失败</div>
+    </div>
+  </div>
+
+</body>
+</html>

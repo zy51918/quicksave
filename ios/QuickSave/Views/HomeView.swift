@@ -77,12 +77,14 @@ struct HomeView: View {
         .task {
             model.refreshClipboard()
             model.consumeSharedPayload()
+            model.consumeQuickSaveResult()
             model.validateTargetFileAccess()
         }
         .onChange(of: scenePhase) { phase in
             guard phase == .active else { return }
             model.refreshClipboard()
             model.consumeSharedPayload()
+            model.consumeQuickSaveResult()
             model.validateTargetFileAccess()
         }
         .alert("清空保存文件", isPresented: $model.showClearConfirmation) {

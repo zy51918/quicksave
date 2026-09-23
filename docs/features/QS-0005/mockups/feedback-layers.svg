@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560">
+  <defs>
+    <style>
+      text { font-family: system-ui, -apple-system, Roboto, sans-serif; }
+      .h { font-size: 14px; font-weight: 600; }
+      .b { font-size: 11.5px; }
+      .s { font-size: 10px; }
+    </style>
+    <marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0 0 L9 4.5 L0 9 z" fill="#7C8B91"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="560" fill="#F4F7F7" rx="14"/>
+  <rect width="900" height="560" fill="none" stroke="#D8DEDE" stroke-width="1" rx="14"/>
+
+  <text x="30" y="42" class="h" fill="#102A36">点击控件后的反馈分层（QS-0005）</text>
+  <text x="30" y="62" class="b" fill="#7C8B91">控件触发后控制中心立即收起 —— 此时没有任何可绘制的界面，因此反馈必须分层承接</text>
+
+  <!-- ── Step: user taps ─────────────────────────────── -->
+  <rect x="30" y="92" width="200" height="66" rx="12" fill="#FFFFFF" stroke="#D8DEDE"/>
+  <text x="130" y="120" class="b" fill="#102A36" text-anchor="middle" font-weight="600">下拉控制中心 · 点控件</text>
+  <text x="130" y="140" class="s" fill="#7C8B91" text-anchor="middle">读 App Group：bookmark + 分类</text>
+
+  <line x1="234" y1="125" x2="286" y2="125" stroke="#7C8B91" stroke-width="1.4" marker-end="url(#arw)"/>
+
+  <!-- ── Step: control dismisses ─────────────────────── -->
+  <rect x="290" y="92" width="200" height="66" rx="12" fill="#2A2E33"/>
+  <text x="390" y="120" class="b" fill="#FFDAD3" text-anchor="middle" font-weight="600">控制中心收起</text>
+  <text x="390" y="140" class="s" fill="#9AA4AB" text-anchor="middle">用户已回到原来的 App</text>
+
+  <line x1="494" y1="125" x2="546" y2="125" stroke="#7C8B91" stroke-width="1.4" marker-end="url(#arw)"/>
+
+  <!-- ── Step: write ─────────────────────────────────── -->
+  <rect x="550" y="92" width="320" height="66" rx="12" fill="#FFFFFF" stroke="#087F7B" stroke-width="1.4"/>
+  <text x="710" y="118" class="b" fill="#102A36" text-anchor="middle" font-weight="600">后台写入目标文件</text>
+  <text x="710" y="138" class="s" fill="#7C8B91" text-anchor="middle">成败结果暂存 App Group</text>
+
+  <!-- ── L1 ───────────────────────────────────────────── -->
+  <rect x="30" y="196" width="272" height="150" rx="12" fill="#FFFFFF" stroke="#D8DEDE"/>
+  <rect x="30" y="196" width="4" height="150" rx="2" fill="#087F7B"/>
+  <text x="50" y="224" class="h" fill="#087F7B">L1 · 控件自身状态变化</text>
+  <text x="50" y="246" class="b" fill="#45616A">控件重渲染为「已保存」/「未保存」，</text>
+  <text x="50" y="264" class="b" fill="#45616A">约 2s / 3.5s 后回落就绪态。</text>
+  <line x1="50" y1="278" x2="282" y2="278" stroke="#F0F3F3"/>
+  <text x="50" y="298" class="s" fill="#7C8B91">覆盖：始终生效</text>
+  <text x="50" y="316" class="s" fill="#7C8B91">局限：用户需再下拉一次才看得到</text>
+  <text x="50" y="334" class="s" fill="#B94D3D">⚠ 依赖「控件可后台写入」未验证前提</text>
+
+  <!-- ── L2 ───────────────────────────────────────────── -->
+  <rect x="314" y="196" width="272" height="150" rx="12" fill="#FFFFFF" stroke="#D8DEDE"/>
+  <rect x="314" y="196" width="4" height="150" rx="2" fill="#45616A"/>
+  <text x="334" y="224" class="h" fill="#45616A">L2 · 主 App 内 Toast</text>
+  <text x="334" y="246" class="b" fill="#45616A">复用 QuickSaveToast，文案与时长</text>
+  <text x="334" y="264" class="b" fill="#45616A">与 QS-0004 §3.1 完全一致。</text>
+  <line x1="334" y1="278" x2="566" y2="278" stroke="#F0F3F3"/>
+  <text x="334" y="298" class="s" fill="#7C8B91">覆盖：仅在 App 被拉起时</text>
+  <text x="334" y="316" class="s" fill="#7C8B91">若形态为静默保存则不触发</text>
+
+  <!-- ── L3 ───────────────────────────────────────────── -->
+  <rect x="598" y="196" width="272" height="150" rx="12" fill="#FFFFFF" stroke="#B94D3D" stroke-width="1.4"/>
+  <rect x="598" y="196" width="4" height="150" rx="2" fill="#B94D3D"/>
+  <text x="618" y="224" class="h" fill="#B94D3D">L3 · 待办失败提示</text>
+  <text x="618" y="246" class="b" fill="#45616A">静默保存失败且用户未察觉时，</text>
+  <text x="618" y="264" class="b" fill="#45616A">下次进 App 以 Toast 提示一次。</text>
+  <line x1="618" y1="278" x2="850" y2="278" stroke="#F0F3F3"/>
+  <text x="618" y="298" class="s" fill="#7C8B91">消费即清，不重复打扰</text>
+  <text x="618" y="316" class="s" fill="#B94D3D">必要：防「以为存了其实没存」</text>
+
+  <!-- ── rationale ─────────────────────────────────────── -->
+  <rect x="30" y="372" width="840" height="86" rx="12" fill="#FFF8F6" stroke="#B94D3D" stroke-opacity="0.35"/>
+  <text x="50" y="398" class="b" fill="#B94D3D" font-weight="600">为什么必须要有 L3</text>
+  <text x="50" y="422" class="b" fill="#45616A">静默保存最危险的情形不是「失败」，而是「失败得无声无息」—— 用户以为已归档，实际丢失。</text>
+  <text x="50" y="442" class="b" fill="#45616A">L1 需要用户主动下拉复查才可见，L2 在静默形态下不触发，因此仅靠 L1+L2 会漏掉失败。L3 补齐这一缺口。</text>
+
+  <!-- ── footer ────────────────────────────────────────── -->
+  <line x1="30" y1="484" x2="870" y2="484" stroke="#D8DEDE"/>
+  <text x="30" y="510" class="b" fill="#102A36" font-weight="600">不采用的反馈形态</text>
+  <text x="30" y="532" class="s" fill="#7C8B91">系统通知（需额外权限、为轻量保存打断不值）· Live Activity（生命周期语义不匹配、成本高）</text>
+  <text x="30" y="548" class="s" fill="#7C8B91">音效/震动（控件 Intent 内不保证可触发）· 打开 App 再自动返回（打断上下文，比不反馈更差）</text>
+</svg>

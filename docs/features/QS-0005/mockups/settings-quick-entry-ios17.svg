@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 600" width="360" height="600">
+  <defs>
+    <style>text { font-family: system-ui, -apple-system, Roboto, sans-serif; }</style>
+  </defs>
+
+  <rect width="360" height="600" fill="#F4F7F7" rx="12"/>
+  <rect width="360" height="600" fill="none" stroke="#D8DEDE" stroke-width="1" rx="12"/>
+
+  <!-- Nav bar -->
+  <rect x="0" y="0" width="360" height="44" fill="#FFFFFF"/>
+  <text x="16" y="28" font-size="16" fill="#087F7B">‹</text>
+  <text x="180" y="28" font-size="15" font-weight="600" fill="#102A36" text-anchor="middle">设置</text>
+  <line x1="0" y1="44" x2="360" y2="44" stroke="#E4E9E9" stroke-width="1"/>
+
+  <!-- ── Section: 快捷入口 (degraded, iOS 17) ──────────────── -->
+  <text x="20" y="76" font-size="12" font-weight="600" fill="#6B7D82" letter-spacing="0.6">快捷入口</text>
+
+  <rect x="16" y="90" width="328" height="104" rx="12" fill="#FFFFFF"/>
+  <rect x="16" y="90" width="328" height="104" rx="12" fill="none" stroke="#E4E9E9" stroke-width="1"/>
+
+  <!-- Info row: icon + text -->
+  <circle cx="42" cy="120" r="14" fill="#FDF0EE"/>
+  <text x="42" y="126" font-size="15" fill="#B94D3D" text-anchor="middle">i</text>
+  <text x="66" y="116" font-size="13.5" font-weight="600" fill="#102A36">当前系统不支持</text>
+  <text x="66" y="136" font-size="12" fill="#45616A">需要 iOS 18 及以上</text>
+
+  <!-- Divider -->
+  <line x1="30" y1="154" x2="330" y2="154" stroke="#F0F3F3" stroke-width="1"/>
+
+  <!-- Explanation -->
+  <text x="30" y="178" font-size="12" fill="#9AA8AC">控制中心控件在 iOS 18 起提供。</text>
+
+  <!-- Note: no disabled button, no fake promise -->
+  <text x="30" y="216" font-size="10.5" fill="#9AA8AC">iOS 17 及以下：不显示添加引导步骤，</text>
+  <text x="30" y="231" font-size="10.5" fill="#9AA8AC">主 App 与分享保存功能不受影响。</text>
+
+  <!-- ── Section: 保存目标文件 (unchanged context) ─────────── -->
+  <text x="20" y="274" font-size="12" font-weight="600" fill="#6B7D82" letter-spacing="0.6">保存目标文件</text>
+  <rect x="16" y="286" width="328" height="92" rx="12" fill="#FFFFFF"/>
+  <rect x="16" y="286" width="328" height="92" rx="12" fill="none" stroke="#E4E9E9" stroke-width="1"/>
+  <text x="30" y="314" font-size="13" fill="#087F7B">✓</text>
+  <text x="50" y="314" font-size="13.5" fill="#102A36">已配置目标文件</text>
+  <line x1="30" y1="328" x2="330" y2="328" stroke="#F0F3F3" stroke-width="1"/>
+  <text x="30" y="352" font-size="13.5" fill="#B94D3D">重新选择文件</text>
+
+  <!-- ── Section: 分类管理 (unchanged context) ─────────────── -->
+  <text x="20" y="408" font-size="12" font-weight="600" fill="#6B7D82" letter-spacing="0.6">分类管理</text>
+  <rect x="16" y="420" width="328" height="66" rx="12" fill="#FFFFFF"/>
+  <rect x="16" y="420" width="328" height="66" rx="12" fill="none" stroke="#E4E9E9" stroke-width="1"/>
+  <text x="30" y="450" font-size="13.5" fill="#102A36">＋ 新增分类</text>
+  <text x="30" y="472" font-size="11" fill="#9AA8AC">长按列表项可拖拽排序</text>
+
+  <text x="180" y="592" font-size="10" fill="#9AA8AC" text-anchor="middle">iOS 17 降级态 · 不显示引导步骤 · 不放假按钮</text>
+</svg>

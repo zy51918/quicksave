@@ -47,6 +47,24 @@ struct SettingsView: View {
             }
 
             Section {
+                if #available(iOS 18.0, *) {
+                    Label("添加到控制中心", systemImage: "archivebox")
+                        .font(.subheadline.weight(.semibold))
+                    Text("下拉控制中心 → 点左上「＋」→ 找到 QuickSave → 添加。\n添加后可一键保存剪切板文字，无需先打开 App。")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Label("当前系统不支持", systemImage: "info.circle")
+                        .foregroundStyle(Color.quickSaveCoral)
+                    Text("控制中心控件需要 iOS 18 及以上系统。你的设备仍可使用主页保存与分享保存。")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            } header: {
+                Text("快捷入口")
+            }
+
+            Section {
                 if model.categories.isEmpty {
                     Text("暂无分类，点击下方按钮添加")
                         .foregroundStyle(.secondary)
