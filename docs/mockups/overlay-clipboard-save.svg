@@ -22,31 +22,31 @@
   <rect x="666" y="82" width="108" height="24" rx="12" fill="#102A36"/>
   <g clip-path="url(#phoneClip)">
     <rect x="506" y="68" width="428" height="768" fill="#F4F7F7"/>
-    <text x="536" y="138" font-family="PingFang SC, sans-serif" font-size="11" font-weight="700" letter-spacing="1.4" fill="#087F7B">QUICKSAVE</text>
+    <text x="536" y="138" font-family="PingFang SC, sans-serif" font-size="11" font-weight="700" letter-spacing="1.4" fill="#465511">QUICKSAVE</text>
     <text x="536" y="166" font-family="PingFang SC, sans-serif" font-size="23" font-weight="700" fill="#102A36">快速归档</text>
-    <rect x="536" y="204" width="368" height="82" rx="16" fill="#FFFFFF" stroke="#C5D2D4"/>
+    <rect x="536" y="204" width="368" height="82" rx="16" fill="#FFFFFF"/>
     <text x="552" y="230" font-family="PingFang SC, sans-serif" font-size="13" font-weight="700" fill="#102A36">分类（可选）</text>
-    <rect x="552" y="244" width="58" height="28" rx="14" fill="#BCE9E4"/>
-    <text x="567" y="263" font-family="PingFang SC, sans-serif" font-size="12" font-weight="700" fill="#003735">工作</text>
+    <rect x="552" y="244" width="58" height="28" rx="14" fill="#EDF6D0"/>
+    <text x="567" y="263" font-family="PingFang SC, sans-serif" font-size="12" font-weight="700" fill="#465511">工作</text>
     <rect x="618" y="244" width="58" height="28" rx="14" fill="#FFFFFF" stroke="#C5D2D4"/>
     <text x="633" y="263" font-family="PingFang SC, sans-serif" font-size="12" fill="#45616A">学习</text>
-    <text x="536" y="332" font-family="monospace" font-size="10" font-weight="700" letter-spacing="1" fill="#087F7B">FROM CLIPBOARD</text>
-    <rect x="536" y="350" width="368" height="174" rx="22" fill="#BCE9E4"/>
-    <rect x="554" y="368" width="34" height="34" rx="9" fill="#087F7B"/>
-    <rect x="563" y="377" width="15" height="17" rx="2" fill="none" stroke="#FFFFFF" stroke-width="2"/>
-    <path d="M566 373h10v5" fill="none" stroke="#FFFFFF" stroke-width="2"/>
-    <text x="600" y="386" font-family="PingFang SC, sans-serif" font-size="14" font-weight="700" fill="#003735">当前剪切板</text>
-    <text x="600" y="404" font-family="PingFang SC, sans-serif" font-size="11" fill="#2C6B69">准备好保存到文件</text>
-    <text x="554" y="448" font-family="PingFang SC, sans-serif" font-size="14" fill="#003735">读完这段内容后，记得把它归档下来。</text>
-    <text x="554" y="470" font-family="PingFang SC, sans-serif" font-size="14" fill="#003735">以后可以按分类快速找到。</text>
-    <rect x="554" y="488" width="332" height="26" rx="13" fill="#087F7B"/>
-    <text x="675" y="506" font-family="PingFang SC, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF">↓  保存到文件</text>
-    <rect x="536" y="554" width="368" height="132" rx="22" fill="#FFFFFF" stroke="#C5D2D4"/>
+    <text x="536" y="332" font-family="monospace" font-size="10" font-weight="700" letter-spacing="1" fill="#465511">FROM CLIPBOARD</text>
+    <rect x="536" y="350" width="368" height="174" rx="22" fill="#EDF6D0"/>
+    <rect x="554" y="368" width="34" height="34" rx="9" fill="#C5E166"/>
+    <rect x="563" y="377" width="15" height="17" rx="2" fill="none" stroke="#2D370B" stroke-width="2"/>
+    <path d="M566 373h10v5" fill="none" stroke="#2D370B" stroke-width="2"/>
+    <text x="600" y="386" font-family="PingFang SC, sans-serif" font-size="14" font-weight="700" fill="#465511">当前剪切板</text>
+    <text x="600" y="404" font-family="PingFang SC, sans-serif" font-size="11" fill="#45616A">准备好保存到文件</text>
+    <text x="554" y="448" font-family="PingFang SC, sans-serif" font-size="14" fill="#465511">读完这段内容后，记得把它归档下来。</text>
+    <text x="554" y="470" font-family="PingFang SC, sans-serif" font-size="14" fill="#465511">以后可以按分类快速找到。</text>
+    <rect x="554" y="488" width="332" height="26" rx="13" fill="#C5E166"/>
+    <text x="675" y="506" font-family="PingFang SC, sans-serif" font-size="12" font-weight="700" fill="#2D370B">↓  保存到文件</text>
+    <rect x="536" y="554" width="368" height="132" rx="22" fill="#FFFFFF"/>
     <text x="554" y="582" font-family="PingFang SC, sans-serif" font-size="13" font-weight="700" fill="#102A36">手动记录</text>
     <rect x="554" y="600" width="332" height="34" rx="8" fill="#FFFFFF" stroke="#71888D"/>
     <text x="566" y="621" font-family="PingFang SC, sans-serif" font-size="12" fill="#71888D">在此输入要保存的文字</text>
-    <rect x="554" y="646" width="332" height="28" rx="14" fill="#087F7B"/>
-    <text x="675" y="664" font-family="PingFang SC, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF">↓  保存到文件</text>
+    <rect x="554" y="646" width="332" height="28" rx="14" fill="#C5E166"/>
+    <text x="675" y="664" font-family="PingFang SC, sans-serif" font-size="12" font-weight="700" fill="#2D370B">↓  保存到文件</text>
   </g>
 
   <!-- Overlay 1: collapsed -->
@@ -56,28 +56,28 @@
 
   <!-- Overlay 2: expanded three-action panel -->
   <rect x="950" y="456" width="390" height="112" rx="20" fill="#173942" fill-opacity=".32" stroke="#D7E3E5" stroke-opacity=".18" filter="url(#shadow)"/>
-  <rect x="970" y="474" width="110" height="76" rx="14" fill="#087F7B" fill-opacity=".78"/>
-  <rect x="1090" y="474" width="110" height="76" rx="14" fill="#087F7B" fill-opacity=".78"/>
-  <rect x="1210" y="474" width="110" height="76" rx="14" fill="#087F7B" fill-opacity=".78"/>
+  <rect x="970" y="474" width="110" height="76" rx="14" fill="#C5E166" fill-opacity=".78"/>
+  <rect x="1090" y="474" width="110" height="76" rx="14" fill="#C5E166" fill-opacity=".78"/>
+  <rect x="1210" y="474" width="110" height="76" rx="14" fill="#C5E166" fill-opacity=".78"/>
   <!-- equal-level actions: same width, teal surface, opacity, icon weight, and label treatment -->
   <!-- save clipboard icon -->
-  <path d="M1015 484h20v22h-20zM1019 480h12v6h-12z" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M1019 500h12" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
-  <text x="1025" y="538" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="11" fill="#FFFFFF">保存剪切板</text>
+  <path d="M1015 484h20v22h-20zM1019 480h12v6h-12z" fill="none" stroke="#2D370B" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M1019 500h12" stroke="#2D370B" stroke-width="2" stroke-linecap="round"/>
+  <text x="1025" y="538" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="11" fill="#2D370B">保存剪切板</text>
   <!-- copy icon -->
-  <rect x="1134" y="485" width="20" height="22" rx="3" fill="none" stroke="#FFFFFF" stroke-width="2"/>
-  <path d="M1139 480h13a3 3 0 0 1 3 3v19" fill="none" stroke="#FFFFFF" stroke-width="2"/>
-  <text x="1145" y="538" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="11" fill="#FFFFFF">文字输入</text>
+  <rect x="1134" y="485" width="20" height="22" rx="3" fill="none" stroke="#2D370B" stroke-width="2"/>
+  <path d="M1139 480h13a3 3 0 0 1 3 3v19" fill="none" stroke="#2D370B" stroke-width="2"/>
+  <text x="1145" y="538" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="11" fill="#2D370B">文字输入</text>
   <!-- microphone icon -->
-  <rect x="1258" y="480" width="12" height="22" rx="6" fill="none" stroke="#FFFFFF" stroke-width="2"/>
-  <path d="M1252 497a12 12 0 0 0 24 0M1264 509v8M1257 517h14" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
-  <text x="1265" y="538" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="11" fill="#FFFFFF">录音</text>
+  <rect x="1258" y="480" width="12" height="22" rx="6" fill="none" stroke="#2D370B" stroke-width="2"/>
+  <path d="M1252 497a12 12 0 0 0 24 0M1264 509v8M1257 517h14" fill="none" stroke="#2D370B" stroke-width="2" stroke-linecap="round"/>
+  <text x="1265" y="538" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="11" fill="#2D370B">录音</text>
   <text x="1145" y="584" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="13" font-weight="700" fill="#102A36">展开态 · 三个快捷操作同级</text>
 
   <!-- Overlay 3: success feedback -->
   <rect x="1010" y="666" width="290" height="52" rx="26" fill="#173942" fill-opacity=".32" stroke="#D7E3E5" stroke-opacity=".18" filter="url(#shadow)"/>
-  <circle cx="1040" cy="692" r="12" fill="#BCE9E4"/>
-  <path d="M1034 692l4 4 8-9" fill="none" stroke="#087F7B" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="1040" cy="692" r="12" fill="#EDF6D0"/>
+  <path d="M1034 692l4 4 8-9" fill="none" stroke="#465511" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
   <text x="1062" y="697" font-family="PingFang SC, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF">已保存剪切板内容</text>
   <text x="1155" y="748" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="13" font-weight="700" fill="#102A36">点击后：保存 → 收起 → 短暂反馈</text>
 

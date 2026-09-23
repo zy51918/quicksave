@@ -4,8 +4,20 @@ extension Color {
     static let quickSavePaper = Color(red: 0.957, green: 0.969, blue: 0.969)
     static let quickSaveInk = Color(red: 0.063, green: 0.165, blue: 0.212)
     static let quickSaveInkSoft = Color(red: 0.271, green: 0.380, blue: 0.416)
-    static let quickSaveTeal = Color(red: 0.031, green: 0.498, blue: 0.482)
-    static let quickSaveTealPale = Color(red: 0.737, green: 0.914, blue: 0.894)
+
+    /// 品牌主色（浅绿）。亮度极高（白字在其上仅 1.46:1），因此**只作填充**：
+    /// 实色按钮底、选中胶囊底。其上的文字/图标一律用 `quickSaveLimeInk`。
+    static let quickSaveTeal = Color(red: 0.773, green: 0.882, blue: 0.400)
+
+    /// 主色填充之上的文字/图标（8.6:1）。
+    static let quickSaveLimeInk = Color(red: 0.176, green: 0.216, blue: 0.043)
+
+    /// 浅色底上的主色文字与描边（Paper 上 7.6:1）。
+    static let quickSaveTealDark = Color(red: 0.275, green: 0.333, blue: 0.067)
+
+    /// 浅色容器底（剪切板卡背景）。
+    static let quickSaveTealPale = Color(red: 0.929, green: 0.965, blue: 0.816)
+
     static let quickSaveCoral = Color(red: 0.725, green: 0.302, blue: 0.239)
     static let quickSaveCoralPale = Color(red: 1.0, green: 0.855, blue: 0.827)
 }
@@ -36,7 +48,7 @@ struct SectionLabel: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(eyebrow)
                     .font(.caption.monospaced().weight(.semibold))
-                    .foregroundStyle(Color.quickSaveTeal)
+                    .foregroundStyle(Color.quickSaveTealDark)
                 Text(title)
                     .font(.headline)
                     .foregroundStyle(Color.quickSaveInk)

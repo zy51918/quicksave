@@ -57,6 +57,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.ylib.quicksave.overlay.OverlayService
 import com.ylib.quicksave.ui.theme.Dim
+import com.ylib.quicksave.ui.theme.appOutlinedButtonColors
+import com.ylib.quicksave.ui.theme.appTextButtonColors
+import com.ylib.quicksave.ui.theme.brandColors
 import com.ylib.quicksave.ui.viewmodel.SettingsViewModel
 import com.ylib.quicksave.util.PermissionHelper
 import sh.calvin.reorderable.ReorderableItem
@@ -154,7 +157,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
                         Text(
                             "QUICKSAVE",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.brandColors.accent
                         )
                         Text("设置", style = MaterialTheme.typography.titleLarge)
                     }
@@ -212,6 +215,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
                             }
                         )
                     },
+                    colors = appOutlinedButtonColors(),
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("重新选择文件") }
             } else {
@@ -334,10 +338,16 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
                                         modifier = Modifier.weight(1f),
                                         style = MaterialTheme.typography.bodyMedium
                                     )
-                                    TextButton(onClick = { renamingCategory = category }) {
+                                    TextButton(
+                                        onClick = { renamingCategory = category },
+                                        colors = appTextButtonColors()
+                                    ) {
                                         Text("重命名")
                                     }
-                                    TextButton(onClick = { viewModel.deleteCategory(category) }) {
+                                    TextButton(
+                                        onClick = { viewModel.deleteCategory(category) },
+                                        colors = appTextButtonColors()
+                                    ) {
                                         Text("删除", color = MaterialTheme.colorScheme.error)
                                     }
                                 }
@@ -350,6 +360,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
             Spacer(Modifier.height(Dim.itemSpacing))
             OutlinedButton(
                 onClick = { showAddCategoryDialog = true },
+                colors = appOutlinedButtonColors(),
                 modifier = Modifier.fillMaxWidth()
             ) { Text("＋ 新增分类") }
 

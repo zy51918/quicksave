@@ -164,9 +164,9 @@ private struct CategoryChipRow: View {
                                 .font(.subheadline)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
-                                .foregroundStyle(selectedCategory == category ? Color.white : Color.quickSaveTeal)
+                                .foregroundStyle(selectedCategory == category ? Color.quickSaveLimeInk : Color.quickSaveTealDark)
                                 .background(selectedCategory == category ? Color.quickSaveTeal : Color.clear, in: Capsule())
-                                .overlay(Capsule().stroke(Color.quickSaveTeal, lineWidth: selectedCategory == category ? 0 : 1))
+                                .overlay(Capsule().stroke(Color.quickSaveTealDark, lineWidth: selectedCategory == category ? 0 : 1))
                             }
                             .accessibilityLabel("分类 \(category)")
                         }
@@ -175,8 +175,8 @@ private struct CategoryChipRow: View {
                                 .font(.subheadline)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
-                                .foregroundStyle(Color.quickSaveTeal)
-                                .overlay(Capsule().stroke(Color.quickSaveTeal, lineWidth: 1))
+                                .foregroundStyle(Color.quickSaveTealDark)
+                                .overlay(Capsule().stroke(Color.quickSaveTealDark, lineWidth: 1))
                         }
                     }
                 }
@@ -201,7 +201,7 @@ private struct ClipboardCard: View {
                 } icon: {
                     Image(systemName: "doc.on.clipboard.fill")
                         .font(.title2)
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(Color.quickSaveLimeInk)
                         .frame(width: 36, height: 36)
                         .background(Color.quickSaveTeal, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
@@ -271,6 +271,8 @@ private struct SaveButton: View {
         }
         .buttonStyle(.borderedProminent)
         .tint(Color.quickSaveTeal)
+        // 与 Android 端一致：主色填充是浅绿，其上的文字必须用深色才可读（白字仅 1.47:1）
+        .foregroundStyle(Color.quickSaveLimeInk)
         .disabled(!isEnabled)
     }
 }

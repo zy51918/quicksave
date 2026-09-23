@@ -1,6 +1,5 @@
 package com.ylib.quicksave.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,6 +68,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.ylib.quicksave.ui.theme.Dim
+import com.ylib.quicksave.ui.theme.appDangerOutlinedButtonColors
+import com.ylib.quicksave.ui.theme.appOutlinedButtonColors
+import com.ylib.quicksave.ui.theme.appOutlinedTextFieldColors
+import com.ylib.quicksave.ui.theme.appTextButtonColors
+import com.ylib.quicksave.ui.theme.brandColors
 import com.ylib.quicksave.ui.viewmodel.HomeViewModel
 import com.ylib.quicksave.ui.viewmodel.SaveResult
 
@@ -110,7 +114,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                         Text(
                             "QUICKSAVE",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = MaterialTheme.brandColors.accent,
                             fontWeight = FontWeight.Bold
                         )
                         Text("快速归档", style = MaterialTheme.typography.titleLarge)
@@ -182,12 +186,18 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                 title = { Text("清空保存文件") },
                 text = { Text("确认清空文件内全部内容？此操作不可恢复。") },
                 confirmButton = {
-                    TextButton(onClick = { viewModel.clearSavedFile() }) {
+                    TextButton(
+                        onClick = { viewModel.clearSavedFile() },
+                        colors = appTextButtonColors()
+                    ) {
                         Text("清空", color = MaterialTheme.colorScheme.error)
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { viewModel.dismissClearDialog() }) { Text("取消") }
+                    TextButton(
+                        onClick = { viewModel.dismissClearDialog() },
+                        colors = appTextButtonColors()
+                    ) { Text("取消") }
                 }
             )
         }
@@ -216,7 +226,7 @@ private fun SectionLabel(eyebrow: String, title: String) {
         Text(
             eyebrow,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.brandColors.accent,
             fontFamily = FontFamily.Monospace
         )
         Spacer(Modifier.height(3.dp))
@@ -263,8 +273,7 @@ internal fun CategoryChipRow(
             .fillMaxWidth()
             .testTag(TAG_CATEGORY_CHIP_ROW),
         color = MaterialTheme.colorScheme.surface,
-        shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        shape = MaterialTheme.shapes.medium
     ) {
         Column(Modifier.padding(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -306,13 +315,13 @@ internal fun CategoryChipRow(
                         label = { Text("＋ 新增") },
                         colors = FilterChipDefaults.filterChipColors(
                             containerColor = MaterialTheme.colorScheme.surface,
-                            labelColor = MaterialTheme.colorScheme.primary,
-                            iconColor = MaterialTheme.colorScheme.primary
+                            labelColor = MaterialTheme.brandColors.accent,
+                            iconColor = MaterialTheme.brandColors.accent
                         ),
                         border = FilterChipDefaults.filterChipBorder(
                             enabled = true,
                             selected = false,
-                            borderColor = MaterialTheme.colorScheme.primary
+                            borderColor = MaterialTheme.brandColors.accent
                         )
                     )
                 }
@@ -356,7 +365,7 @@ internal fun ClipboardCard(
                     Text(
                         "准备好保存到文件",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f)
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.9f)
                     )
                 }
             }
@@ -400,7 +409,6 @@ internal fun ManualInputCard(
             .fillMaxWidth()
             .testTag(TAG_MANUAL_INPUT_CARD),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         shape = MaterialTheme.shapes.large
     ) {
         Column(Modifier.padding(12.dp)) {
@@ -413,6 +421,7 @@ internal fun ManualInputCard(
                 placeholder = { Text("在此输入要保存的文字") },
                 minLines = 3,
                 maxLines = 6,
+                colors = appOutlinedTextFieldColors(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag(TAG_MANUAL_INPUT_FIELD)
@@ -435,31 +444,14 @@ internal fun ManualInputCard(
 
 @Composable
 private fun ClearFileAction(onClick: () -> Unit) {
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    OutlinedButton(
+        onClick = onClick,
+        colors = appDangerOutlinedButtonColors(),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier.padding(start = 16.dp, end = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                Icons.Filled.DeleteOutline,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.error
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                "清空保存文件内容",
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyMedium
-            )
-            TextButton(onClick = onClick) {
-                Text("清空", color = MaterialTheme.colorScheme.error)
-            }
-        }
+        Icon(Icons.Filled.DeleteOutline, contentDescription = null)
+        Spacer(Modifier.width(8.dp))
+        Text("清空保存文件内容")
     }
 }
 
@@ -495,17 +487,19 @@ fun CategoryNameDialog(
                 } else null,
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                colors = appOutlinedTextFieldColors(),
                 modifier = Modifier.fillMaxWidth()
             )
         },
         confirmButton = {
             TextButton(
                 onClick = { onConfirm(name.trim()) },
-                enabled = !isBlank && !isDuplicate
+                enabled = !isBlank && !isDuplicate,
+                colors = appTextButtonColors()
             ) { Text("确定") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+            TextButton(onClick = onDismiss, colors = appTextButtonColors()) { Text("取消") }
         }
     )
 }
@@ -537,7 +531,10 @@ private fun NoFileWarningCard(onNavigateToSettings: () -> Unit) {
                     color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
                 Spacer(Modifier.height(12.dp))
-                OutlinedButton(onClick = onNavigateToSettings) {
+                OutlinedButton(
+                    onClick = onNavigateToSettings,
+                    colors = appOutlinedButtonColors()
+                ) {
                     Icon(Icons.Filled.Edit, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text("去选择文件")

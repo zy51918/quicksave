@@ -10,7 +10,7 @@
   <!-- Settings page navigation bar -->
   <rect x="0" y="0" width="360" height="44" fill="#FFFFFF" rx="0"/>
   <path d="M0 0 L360 0 L360 44 L0 44 Z" fill="#FFFFFF"/>
-  <text x="16" y="28" font-size="16" fill="#087F7B">‹</text>
+  <text x="16" y="28" font-size="16" fill="#465511">‹</text>
   <text x="180" y="28" font-size="15" font-weight="600" fill="#102A36" text-anchor="middle">设置</text>
   <line x1="0" y1="44" x2="360" y2="44" stroke="#E4E9E9" stroke-width="1"/>
 
@@ -23,9 +23,9 @@
   <rect x="16" y="102" width="328" height="216" rx="12" fill="none" stroke="#E4E9E9" stroke-width="1"/>
 
   <!-- Card: title row with icon -->
-  <circle cx="42" cy="132" r="14" fill="#E6F4F3"/>
-  <path d="M36 126 h12 v9 h-12 z M36 135 l-2.5 4 h17 L48 135" fill="none" stroke="#087F7B" stroke-width="1.6" stroke-linejoin="round"/>
-  <line x1="36" y1="126" x2="48" y2="126" stroke="#087F7B" stroke-width="1.6"/>
+  <circle cx="42" cy="132" r="14" fill="#EDF6D0"/>
+  <path d="M36 126 h12 v9 h-12 z M36 135 l-2.5 4 h17 L48 135" fill="none" stroke="#465511" stroke-width="1.6" stroke-linejoin="round"/>
+  <line x1="36" y1="126" x2="48" y2="126" stroke="#465511" stroke-width="1.6"/>
   <text x="66" y="137" font-size="15" font-weight="600" fill="#102A36">添加到控制中心</text>
 
   <!-- Steps -->
@@ -42,8 +42,8 @@
   <!-- Mini control-center preview strip -->
   <rect x="30" y="250" width="290" height="50" rx="10" fill="#102A36" opacity="0.06"/>
   <rect x="42" y="258" width="34" height="34" rx="9" fill="#FFFFFF" stroke="#E4E9E9" stroke-width="1"/>
-  <path d="M52 266 h14 v10 h-14 z M52 276 l-3 5 h20 l-3-5" fill="none" stroke="#087F7B" stroke-width="1.5" stroke-linejoin="round"/>
-  <line x1="52" y1="266" x2="66" y2="266" stroke="#087F7B" stroke-width="1.5"/>
+  <path d="M52 266 h14 v10 h-14 z M52 276 l-3 5 h20 l-3-5" fill="none" stroke="#465511" stroke-width="1.5" stroke-linejoin="round"/>
+  <line x1="52" y1="266" x2="66" y2="266" stroke="#465511" stroke-width="1.5"/>
   <text x="84" y="275" font-size="11" fill="#45616A">控制中心</text>
   <text x="84" y="289" font-size="10" fill="#9AA8AC">QuickSave · 保存剪切板</text>
 
@@ -51,7 +51,7 @@
   <text x="20" y="352" font-size="12" font-weight="600" fill="#6B7D82" letter-spacing="0.6">保存目标文件</text>
   <rect x="16" y="364" width="328" height="92" rx="12" fill="#FFFFFF"/>
   <rect x="16" y="364" width="328" height="92" rx="12" fill="none" stroke="#E4E9E9" stroke-width="1"/>
-  <text x="30" y="392" font-size="13" fill="#087F7B">✓</text>
+  <text x="30" y="392" font-size="13" fill="#465511">✓</text>
   <text x="50" y="392" font-size="13.5" fill="#102A36">已配置目标文件</text>
   <line x1="30" y1="406" x2="330" y2="406" stroke="#F0F3F3" stroke-width="1"/>
   <text x="30" y="430" font-size="13.5" fill="#B94D3D">重新选择文件</text>

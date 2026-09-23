@@ -31,7 +31,7 @@ struct SettingsView: View {
             Section {
                 if model.targetFileConfigured {
                     Label("已配置目标文件", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(Color.quickSaveTeal)
+                        .foregroundStyle(Color.quickSaveTealDark)
                     Button("重新选择文件") { importingFile = true }
                     Button("移除文件配置", role: .destructive) { model.clearTargetFile() }
                 } else {

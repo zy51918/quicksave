@@ -32,14 +32,14 @@
   <line x1="494" y1="125" x2="546" y2="125" stroke="#7C8B91" stroke-width="1.4" marker-end="url(#arw)"/>
 
   <!-- ── Step: write ─────────────────────────────────── -->
-  <rect x="550" y="92" width="320" height="66" rx="12" fill="#FFFFFF" stroke="#087F7B" stroke-width="1.4"/>
+  <rect x="550" y="92" width="320" height="66" rx="12" fill="#FFFFFF" stroke="#465511" stroke-width="1.4"/>
   <text x="710" y="118" class="b" fill="#102A36" text-anchor="middle" font-weight="600">后台写入目标文件</text>
   <text x="710" y="138" class="s" fill="#7C8B91" text-anchor="middle">成败结果暂存 App Group</text>
 
   <!-- ── L1 ───────────────────────────────────────────── -->
   <rect x="30" y="196" width="272" height="150" rx="12" fill="#FFFFFF" stroke="#D8DEDE"/>
-  <rect x="30" y="196" width="4" height="150" rx="2" fill="#087F7B"/>
-  <text x="50" y="224" class="h" fill="#087F7B">L1 · 控件自身状态变化</text>
+  <rect x="30" y="196" width="4" height="150" rx="2" fill="#C5E166"/>
+  <text x="50" y="224" class="h" fill="#465511">L1 · 控件自身状态变化</text>
   <text x="50" y="246" class="b" fill="#45616A">控件重渲染为「已保存」/「未保存」，</text>
   <text x="50" y="264" class="b" fill="#45616A">约 2s / 3.5s 后回落就绪态。</text>
   <line x1="50" y1="278" x2="282" y2="278" stroke="#F0F3F3"/>

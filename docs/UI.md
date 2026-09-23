@@ -1,7 +1,7 @@
 # QuickSave — UI 交互设计文档（UI）
 
-> 版本：1.7
-> 日期：2026-09-22
+> 版本：1.9
+> 日期：2026-09-23
 > 作者：HIE 设计师
 
 ---
@@ -19,20 +19,42 @@
 
 ## 二、设计规范
 
-### 2.1 色彩系统（Material You / Dynamic Color）
+### 2.1 色彩系统（v1.8：浅绿品牌色）
 
-| Token | 用途 | 默认值（Light） |
-|-------|------|----------------|
-| `Primary` | 主操作按钮、标题强调、选中 Chip | `#6650A4`（紫） |
-| `OnPrimary` | 主色上的文字/图标 | `#FFFFFF` |
-| `PrimaryContainer` | 剪切板预览卡背景 | `#EADDFF` |
-| `OnPrimaryContainer` | 预览卡内文字 | `#21005D` |
-| `Error` | 未配置警告、危险操作 | `#B3261E` |
-| `Surface` | 卡片背景 | `#FFFBFE` |
-| `OnSurfaceVariant` | 辅助文字、标签 | `#49454F` |
-| `Outline` | 边框、分割线 | `#79747E` |
-| `OutlineVariant` | 未选中 Chip 描边 | `#CAC4D0` |
+品牌主色为**浅绿 `#C5E166`**（v1.8 前的深青绿 `#087F7B` 已废弃）。该色亮度极高 —— 白字在它之上仅 **1.46:1**，它自己作为小字落在 Paper 上仅 **1.36:1**，均远低于正文所需的 4.5:1。因此配色遵循一条硬规则：
 
+> **`#C5E166` 只作填充，绝不作为文字色或描边色。**
+
+由此派生三个配套 token：
+
+| Token | 值 | 用途 | 关键对比度 |
+|-------|-----|------|-----------|
+| `Lime`（primary） | `#C5E166` | 主操作按钮底、选中 Chip 底、图标块底 —— **仅填充** | — |
+| `LimeInk`（onPrimary） | `#2D370B` | 浅绿填充**之上**的文字/图标 | 8.62:1 ✓ |
+| `LimeDark`（accent / secondary） | `#465511` | 浅色底**之上**的主色文字与描边（eyebrow、"＋新增" Chip、OutlinedButton 文字）；深色主题的 primaryContainer | 7.28:1 on Paper ✓ |
+| `LimePale`（primaryContainer） | `#EDF6D0` | 浅色容器底（剪切板卡背景） | — |
+
+| Token | 用途 | 取值（Light） |
+|-------|------|--------------|
+| `Primary` | 主操作按钮、选中 Chip、图标块 —— 仅填充 | `#C5E166`（浅绿） |
+| `OnPrimary` | 主色填充上的文字/图标 | `#2D370B`（深橄榄） |
+| `PrimaryContainer` | 剪切板预览卡背景 | `#EDF6D0` |
+| `OnPrimaryContainer` | 预览卡内文字 | `#465511` |
+| `Accent` | 浅底上的主色文字/描边（项目自定义，见 §2.1 注） | `#465511` |
+| `Error` | 未配置警告、危险操作 | `#B94D3D` |
+| `Surface` | 卡片背景 | `#FFFFFF` |
+| `OnSurfaceVariant` | 辅助文字、标签 | `#45616A` |
+| `Outline` | 边框、分割线 | `#71888D` |
+| `OutlineVariant` | 未选中 Chip 描边 | `#C5D2D4` |
+
+> **注**：Material 3 的 `primary` 语义同时覆盖"填充"和"文字/描边"两种用法，而浅绿作文字不可读。因此项目新增 `MaterialTheme.brandColors.accent`（代码位于 `ui/theme/Theme.kt`），凡是把主色当**文字或描边**画在浅色底上的地方都用它：浅色主题取 `#465511`，深色主题取 `#C5E166`（Night 上 11.88:1）。
+>
+> **受影响的 M3 组件**（默认拿 `primary` 当前景色，必须显式覆盖）：`OutlinedButton`、`TextButton`、`OutlinedTextField`（聚焦态描边、标签、光标）。这些统一走 `ui/theme/ComponentColors.kt` 的 `appOutlinedButtonColors()` / `appTextButtonColors()` / `appOutlinedTextFieldColors()`，主页与设置页共用，避免两页配色跑偏。
+>
+> **不受影响**：填充类组件（`Button`、选中态 `FilterChip`）用 `primary` + `onPrimary`（浅绿底 + 深橄榄内容），是正确的；`Switch` 选中态 track 用 `primary`、thumb 用 `onPrimary`，滑块为深色，也正确。
+>
+> **深色主题**：`primary` = `#C5E166`（Night 上 11.88:1，可读），`onPrimary` = `#2D370B`，`primaryContainer` = `#465511`、`onPrimaryContainer` = `#EDF6D0`。
+>
 > Android 12+ 自动使用系统 Dynamic Color；低版本使用上表默认值。
 
 ### 2.2 字体层级
@@ -61,6 +83,22 @@
 
 > v1.4：上述间距/圆角值集中为代码常量 `ui/theme/DimTokens.kt`（`Dim` 对象 + `AppShapes`），所有页面与透明输入窗共用，替代散落在各 Composable 中的硬编码魔数。Card 圆角通过 `AppShapes.medium = RoundedCornerShape(12dp)` 显式注入 Theme，不再依赖 Material 默认值。
 
+### 2.4 应用图标
+
+自适应图标（adaptive icon），`app/src/main/res/drawable/ic_launcher_{background,foreground}.xml`。
+
+| 图层 | 内容 | 色值 |
+|------|------|------|
+| 背景 | 纯色填充 | `#FFFFFF`（白，v1.9 由浅绿改白） |
+| 前景 | 深色文档 + 浅绿铅笔 | 文档 `#102A36`、折角/线条 `#EDF6D0`、铅笔笔身 `#C5E166`、铅笔描边 `#465511`、文档投影 `#102A36`@18% |
+
+- 前景矢量同时被三处复用：图标前景、**通知小图标**（`NotificationIconSpec`）、以及 `monochrome` 图层。三者都只取矢量本身、忽略背景色，故改背景不影响通知栏与主题色适配。
+- 文档投影用中性墨色而非品牌色：原 `#2D370B`@55% 是配浅绿底调的橄榄色，落在白底上会发黄绿显脏。
+- 关键对比度：文档主体在白底上 14.93:1，铅笔笔身 `#C5E166` 在文档上 10.19:1。
+- iOS 侧未提供自定义图标资源，使用系统默认。
+
+> v1.9：背景由品牌浅绿 `#C5E166` 改为白色。矮宽比下白底与深色文档形成强轮廓（14.93:1），比浅绿底更稳。注意 MIUI 等启动器会对图标施加圆角/圆形遮罩并裁掉四周边距，白色边距在桌面上不一定可见 —— 这是启动器行为，非资源问题；应用信息页可见完整方形图标。
+
 ---
 
 ## 三、页面设计
@@ -82,7 +120,7 @@
 │  [8dp]                              │
 ├── ★ 共享分类 Chip 行（v1.2 顶层置顶）─┤
 │  分类（可选）       labelSmall      │
-│  [✓工作] [学习] [生活] [＋新增]    │  ← FilterChip 行，剪切板/手动输入两路共用
+│  [✓工作] [学习] [生活] [＋新增]    │  ← FilterChip 行，剪切板/手动输入两路共用；外层框无描边（v1.9）
 │  [8dp]                              │
 ├── 剪切板内容卡（剪切板有内容时显示）──┤
 │  ┌───────────────────────────────┐  │
@@ -97,7 +135,7 @@
 │  [8dp]                              │
 ├── ★ 手动输入卡（v1.2 新增）───────── ┤
 │  ┌───────────────────────────────┐  │
-│  │ 手动输入        labelSmall    │  │  ← Surface 背景 + Outline 1dp 描边
+│  │ 手动输入        labelSmall    │  │  ← Surface 背景，无描边（v1.9 去边框）
 │  │ [4dp]                         │  │
 │  │ ┌───────────────────────────┐ │  │
 │  │ │ 在此输入要保存的文字       │ │  │  ← OutlinedTextField, minLines=3, maxLines=6
@@ -111,6 +149,12 @@
 └─────────────────────────────────────┘
 ```
 
+> v1.9 关键变更（扁平化）：主页的**分类框**与**手动记录卡**去掉 1dp `outlineVariant` 描边，改为纯扁平填充 —— 不加阴影、不加边框。这是刻意的视觉选择：卡片与页面底（`#FFFFFF` vs `#F4F7F7`，对比度 1.08:1）边界靠留白与分区标题（`FROM CLIPBOARD` / `OR WRITE IT HERE`）划分，而非靠线框。Chip、输入框等**控件级**描边不受影响。
+>
+> v1.9（同批次）**清空操作改回按钮**：原实现是「Surface 容器 + 左侧图标与文字 + 右侧一个 `TextButton("清空")`」，导致「清空保存文件内容」与「清空」两处文字重复。现按本文档既定规格改回**单个全宽 `OutlinedButton`**（图标 + 「清空保存文件内容」居中），`contentColor` 取 `error` 色（`#B94D3D`，Paper 上 4.65:1）。描边由按钮自身提供，不再依赖外层容器。
+>
+> v1.8 关键变更（配色）：品牌主色由深青绿 `#087F7B` 改为浅绿 `#C5E166`（§2.1）。剪切板卡的图标块与「保存到文件」按钮改为浅绿填充 + 深橄榄内容色 `#2D370B`；卡片副文字（"准备好保存到文件"）透明度从 72% 提到 90%，保证在浅绿容器上 ≥4.5:1；顶栏与分区的 eyebrow 小字（"QUICKSAVE"/"FROM CLIPBOARD"）改用 accent `#465511`。
+>
 > v1.4 关键变更：
 > - **新增 surface 色 TopAppBar**：主页加顶栏（标题 "QuickSave" + 右侧设置图标按钮），与设置页顶栏风格统一；原滚动区右下角的「设置」OutlinedButton 移除，设置入口上移到顶栏 action。
 > - **去装饰性箭头**：「保存到文件 ▶」「选择保存文件 ▶」等文案中的 `▶` 移除，回归"界面不添加装饰性元素"原则（§一）。
@@ -123,9 +167,11 @@
 
 | 状态 | 样式 |
 |------|------|
-| 选中 | FilterChip selected（Primary 填充，白色文字） |
+| 选中 | FilterChip selected（Primary 填充 `#C5E166`，深橄榄文字 `#2D370B`） |
 | 未选中 | FilterChip unselected（OutlineVariant 描边） |
-| 「＋ 新增」 | Outline 色描边，点击弹 AlertDialog |
+| 「＋ 新增」 | `LimeDark #465511` 描边与文字，点击弹 AlertDialog |
+
+> v1.8：选中态文字由白色改为 `onPrimary`（`#2D370B`）—— 白字在浅绿底上仅 1.46:1，不可读。「＋ 新增」的文字与描边一并从 `primary` 改为 accent `#465511`。
 
 - 分类多时横向滚动，「＋ 新增」始终在末尾
 - 点击已选中的 Chip 取消选中（切换为无分类）
@@ -136,7 +182,7 @@
 
 | 元素 | 规格 |
 |------|------|
-| 容器 | Card，圆角 12dp，背景 Surface，描边 Outline 1dp（v1.4 起显式 `BorderStroke` 落地） |
+| 容器 | Card，圆角 12dp，背景 Surface，**无描边、无阴影**（v1.9 扁平化） |
 | TextField | `OutlinedTextField`，`minLines=3, maxLines=6`，超出滚动 |
 | placeholder | 「在此输入要保存的文字」 |
 | 保存按钮启用条件 | `text.trim().isNotBlank() && !isManualSaving` |
@@ -244,13 +290,16 @@
 
 | 元素 | 规格 |
 |------|------|
-| 把手 | 半透明竖条（约 14×54dp），圆角；待机蓝 `argb(140,80,140,255)`、录音中红 `argb(170,255,70,70)` |
+| 把手 | 半透明竖条（约 5dp 宽 / 25dp 触控区），圆角；待机中性灰 `argb(180,175,185,185)`、录音中红 `argb(170,255,70,70)` |
 | 红点 | 8dp 圆点，录音中显示在把手右上角 |
-| 展开面板 | 深色圆角横排容器，含【文字输入】【录音】两按钮；点面板外区域（`FLAG_WATCH_OUTSIDE_TOUCH`）收回 |
+| 展开面板 | 半透明浅灰圆角横排容器（`#B4DCE4E4`），含【文字输入】【录音】两按钮；点面板外区域（`FLAG_WATCH_OUTSIDE_TOUCH`）收回 |
+| 动作按钮 | 浅色主题：浅绿填充 `#C5E166` + 深橄榄图标/文字 `#2D370B`；深色主题：改用浅色容器 `#EDF6D0` + 深色内容 `#102A36`（避开浅绿在深底上过亮） |
 | 录音按钮态 | 待机「录音」；录音中「录音中 mm:ss」红色。**固定宽度 + 等宽数字（`tnum`）**，计时更新不引起面板重排（防抖动） |
 | 交互 | 点把手不触发（防误触）；直接向内滑动（≥48dp）展开面板；长按把手（放大蓄力）后拖动调位置/换边，松手吸附最近左/右边；点按钮或点面板外收回贴边 |
 | 位置持久化 | 贴边方向 + 纵向比例存 DataStore，重开 App 恢复 |
 
+> v1.8 关键变更：动作按钮从深青绿 `#087F7B` 改为浅绿 `#C5E166` 填充，其上的图标与文字相应改为 `#2D370B`（8.62:1）。面板内容色在两种主题下统一为深色 —— 面板本身是半透明浅灰，浅色内容在其上不可读。
+>
 > v1.5 关键变更：把手防误触改版 —— 点击把手不再展开（桌面点图标易误触把手触控区）；**直接滑动**（向内 ≥48dp，无速度要求）即展开面板；**长按把手（放大蓄力）后**才进入拖拽，调位置/换边，松手吸附最近边。
 
 #### 透明输入窗（InputActivity）
@@ -365,7 +414,9 @@ iOS 无公开的系统级 Toast API，主 App 内以自绘浮层 `QuickSaveToast
 | 剪切板为空 | "剪切板为空，请先复制文字" | 3.5s |
 | 文件选择/创建失败 | "无法选择文件：{原因}" / "无法创建文件：{原因}" | 3.5s |
 
-**规格**：屏幕底部浮层，距底 16pt，左右留白 20pt；墨色 94% 背景，圆角 14pt，带阴影；左侧状态图标 18×18（成功绿色对勾 / 失败橙色警告）+ 白色 `.subheadline` 文字；spring 动画自底部移入；超时自动消失，点击可提前关闭。
+**规格**：屏幕底部浮层，距底 16pt，左右留白 20pt；墨色 94% 背景，圆角 14pt，带阴影；左侧状态图标 18×18（成功对勾取 `quickSaveTealPale` `#EDF6D0`，失败警告取 `quickSaveCoralPale`）+ 白色 `.subheadline` 文字；spring 动画自底部移入；超时自动消失，点击可提前关闭。
+
+> v1.8：成功图标色从 `quickSaveTealPale`（旧值 `#BCE9E4`）改为新的浅绿容器色 `#EDF6D0`。浮层底为墨色，浅色图标在其上 13.29:1，可读。
 
 **保留 alert 的场景**（输入/确认类，与 Android 一致）：清空保存文件二次确认、新增分类、重命名分类。
 
@@ -379,11 +430,13 @@ iOS 无 Android 悬浮窗的跨 App 常驻自绘层，改用**控制中心控件
 
 | 状态 | 符号 | 标题 | 颜色 |
 |---|---|---|---|
-| 就绪 | `archivebox.fill` | 保存剪切板 | `quickSaveTeal` |
+| 就绪 | `archivebox.fill` | 保存剪切板 | `quickSaveTealDark` `#465511` |
 | 未配置 | `archivebox` + `exclamationmark` 角标 | 去设置 | `quickSaveCoral` |
 | 保存中 | 过渡态 | 保存中 | `quickSaveInkSoft` |
-| 刚成功 | `checkmark.circle.fill` | 已保存 | `quickSaveTeal`（约 2s 回落） |
+| 刚成功 | `checkmark.circle.fill` | 已保存 | `quickSaveTealDark` `#465511`（约 2s 回落） |
 | 刚失败 | `exclamationmark.circle.fill` | 未保存 | `quickSaveCoral`（约 3.5s 回落） |
+
+> v1.8：就绪/刚成功态色调从 `quickSaveTeal`（旧 `#087F7B`）改为 `quickSaveTealDark`（`#465511`）。控件 tint 由系统渲染在浅色底上，浅绿 `#C5E166` 作 tint 对比度仅 1.36:1，故取深橄榄。
 
 **反馈分层**：控件触发后控制中心立即收起，**不存在**浮在原 App 之上的 Toast。反馈按三层呈现 —— L1 控件自身状态变化（始终）、L2 主 App 内 Toast（App 被拉起时）、L3 主 App 内待办提示（静默保存失败且用户未察觉时，下次进入 App 提示一次并消费）。文案与时长沿用 §6.2。
 

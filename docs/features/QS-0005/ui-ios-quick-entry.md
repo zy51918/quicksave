@@ -44,7 +44,7 @@
 | 描述 | `保存剪切板文字到目标文件` |
 | 控件类型 | `ControlWidgetButton`（单动作按钮） |
 | 系统符号 | `archivebox` / `archivebox.fill`（与现有 `OpenQuickSaveIntent` 的 `systemImageName` 一致） |
-| 主色调 | `quickSaveTeal`（`#08807B`） |
+| 主色调 | `quickSaveTealDark`（`#465511`）—— 控件 tint 落在系统浅色底上，品牌浅绿 `#C5E166` 作 tint 对比度仅 1.36:1，故取深橄榄 |
 
 ### 3.2 状态与外观
 
@@ -52,10 +52,10 @@
 
 | 状态 | 符号 | 标题 | 颜色 | 点击行为 |
 |---|---|---|---|---|
-| **就绪**（默认） | `archivebox.fill` | 保存剪切板 | `quickSaveTeal` | 保存当前剪切板文字 |
+| **就绪**（默认） | `archivebox.fill` | 保存剪切板 | `quickSaveTealDark` | 保存当前剪切板文字 |
 | **未配置** | `archivebox` + 角标 `exclamationmark` | 去设置 | `quickSaveCoral` | 打开 App 并直达设置页 |
 | **保存中** | 短暂过渡态 | 保存中 | `quickSaveInkSoft` | 忽略重复点击 |
-| **刚成功** | `checkmark.circle.fill` | 已保存 | `quickSaveTeal` | 约 2s 后回落到「就绪」 |
+| **刚成功** | `checkmark.circle.fill` | 已保存 | `quickSaveTealDark` | 约 2s 后回落到「就绪」 |
 | **刚失败** | `exclamationmark.circle.fill` | 未保存 | `quickSaveCoral` | 约 3.5s 后回落；再次点击重试 |
 
 **布局**（控制中心圆形/方形控件位）
