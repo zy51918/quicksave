@@ -54,9 +54,13 @@
 |---|---|---|---|---|
 | **就绪**（默认） | `archivebox.fill` | 保存剪切板 | `quickSaveTealDark` | 保存当前剪切板文字 |
 | **未配置** | `archivebox` + 角标 `exclamationmark` | 去设置 | `quickSaveCoral` | 打开 App 并直达设置页 |
-| **保存中** | 短暂过渡态 | 保存中 | `quickSaveInkSoft` | 忽略重复点击 |
+| **保存中** | 短暂过渡态 | 保存中 | `quickSaveOnSurfaceVariant` | 忽略重复点击 |
 | **刚成功** | `checkmark.circle.fill` | 已保存 | `quickSaveTealDark` | 约 2s 后回落到「就绪」 |
 | **刚失败** | `exclamationmark.circle.fill` | 未保存 | `quickSaveCoral` | 约 3.5s 后回落；再次点击重试 |
+
+> **「保存中」态配色修订**：原用 `quickSaveInkSoft`（`#45616A`），但控件背板由系统渲染为深色，该色在其上仅约 1.5:1，归档盒图标几乎与背板糊在一起。改用 `quickSaveOnSurfaceVariant`（`#B9CED0`，对应 Android 深色主题的 `onSurfaceVariant`），约 6.0:1。仍为中性灰调，保留「过渡态」语义，与品牌绿（就绪/成功）和警示红（失败）继续区分。其余四态配色不变。
+>
+> 注：以上对比度按原型背板 `#3D4449` 估算；真机背板由系统决定，数值会有差异，但"深灰图标压在深色背板上对比不足"的结论成立。
 
 **布局**（控制中心圆形/方形控件位）
 

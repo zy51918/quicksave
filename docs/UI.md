@@ -432,11 +432,13 @@ iOS 无 Android 悬浮窗的跨 App 常驻自绘层，改用**控制中心控件
 |---|---|---|---|
 | 就绪 | `archivebox.fill` | 保存剪切板 | `quickSaveTealDark` `#465511` |
 | 未配置 | `archivebox` + `exclamationmark` 角标 | 去设置 | `quickSaveCoral` |
-| 保存中 | 过渡态 | 保存中 | `quickSaveInkSoft` |
+| 保存中 | 过渡态 | 保存中 | `quickSaveOnSurfaceVariant` `#B9CED0` |
 | 刚成功 | `checkmark.circle.fill` | 已保存 | `quickSaveTealDark` `#465511`（约 2s 回落） |
 | 刚失败 | `exclamationmark.circle.fill` | 未保存 | `quickSaveCoral`（约 3.5s 回落） |
 
 > v1.8：就绪/刚成功态色调从 `quickSaveTeal`（旧 `#087F7B`）改为 `quickSaveTealDark`（`#465511`）。控件 tint 由系统渲染在浅色底上，浅绿 `#C5E166` 作 tint 对比度仅 1.36:1，故取深橄榄。
+>
+> v1.9：「保存中」态从 `quickSaveInkSoft`（`#45616A`）改为 `quickSaveOnSurfaceVariant`（`#B9CED0`）。控件背板由系统渲染为深色，原色在其上仅约 1.5:1，图标几乎不可见；新色约 6.0:1，仍为中性灰以保留「过渡态」语义。其余四态配色不变。
 
 **反馈分层**：控件触发后控制中心立即收起，**不存在**浮在原 App 之上的 Toast。反馈按三层呈现 —— L1 控件自身状态变化（始终）、L2 主 App 内 Toast（App 被拉起时）、L3 主 App 内待办提示（静默保存失败且用户未察觉时，下次进入 App 提示一次并消费）。文案与时长沿用 §6.2。
 

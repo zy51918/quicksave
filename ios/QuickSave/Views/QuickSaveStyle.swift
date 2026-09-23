@@ -20,6 +20,13 @@ extension Color {
 
     static let quickSaveCoral = Color(red: 0.725, green: 0.302, blue: 0.239)
     static let quickSaveCoralPale = Color(red: 1.0, green: 0.855, blue: 0.827)
+
+    /// 深色背景之上的中性文字/图标。对应 Android 深色主题的 `onSurfaceVariant`。
+    ///
+    /// 控制中心控件的「保存中」态用它：控件背板由系统渲染为深色，
+    /// 原用的 `quickSaveInkSoft`（`#45616A`）在其上仅约 1.5:1，图标几乎不可见；
+    /// 本色约 6.0:1，同时保持中性灰调，与品牌绿/警示红明确区分。
+    static let quickSaveOnSurfaceVariant = Color(red: 0.725, green: 0.808, blue: 0.816)
 }
 
 struct QuickSaveCard<Content: View>: View {
